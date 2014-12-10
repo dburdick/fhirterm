@@ -4,11 +4,22 @@
             [org.httpkit.server :as http-kit]))
 
 (defroutes app
-  (GET "/" [] "<h1>Hello World</h1>")
+  (GET "/" []
+    "Hello world!")
+
   (route/not-found "<h1>Page not found</h1>"))
 
-(defn start [config]
-  (http-kit/run-server app {:port (get-in config [:http :port])}))
+(defn assoc-into-request-mw [handler data]
+  (fn [request]
+    (handler (merge request data))))
+
+(defn- make-handler [db]
+  (-> #(app %)
+      (assoc-into-request-mw {:db db})))
+
+(defn start [config db]
+  (http-kit/run-server (make-handler db)
+                       {:port (get-in config [:http :port])}))
 
 (defn stop [server]
   (when server (server)))

@@ -11,4 +11,5 @@
                  [compojure "1.3.1"]
                  [http-kit "2.1.16"]]
 
-  :profiles {:dev {:source-paths ["dev"]}})
+  :profiles {:dev {:source-paths ["dev"]}
+             :dependencies [[org.clojure/tools.namespace "0.2.4"]]})

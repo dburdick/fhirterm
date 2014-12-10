@@ -1,10 +1,13 @@
 (ns fhirterm.system
-  (:require [fhirterm.server :as server]))
+  (:require [fhirterm.server :as server]
+            [fhirterm.db :as db]))
 
 (def system nil)
 
 (defn- make-system [config]
-  {:server (server/start config)})
+  (let [db (db/start config)]
+    {:server (server/start config db)
+     :db db}))
 
 (defn start [config]
   (alter-var-root #'system
