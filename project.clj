@@ -9,7 +9,12 @@
                  [org.clojure/java.jdbc "0.3.6"]
                  [org.xerial/sqlite-jdbc "3.8.7"]
                  [compojure "1.3.1"]
-                 [http-kit "2.1.16"]]
+                 [http-kit "2.1.16"]
+                 [org.clojure/tools.cli "0.3.1"]
+                 [sqlingvo "0.7.2"]
+                 [cheshire "5.4.0"]]
 
   :profiles {:dev {:source-paths ["dev"]}
-             :dependencies [[org.clojure/tools.namespace "0.2.4"]]})
+             :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
+
+  :aliases {"task" ["run" "-m" "fhirterm.tasks.core"]})
