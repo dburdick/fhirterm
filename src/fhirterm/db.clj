@@ -6,6 +6,10 @@
   (let [db-constructor (ns-resolve 'sqlingvo.db (symbol (:subprotocol config)))]
     (db-constructor config)))
 
+(defn stop []
+  ;; do nothing for now
+  )
+
 (defn e! [db sql]
   (jdbc/execute! db sql))
 
@@ -20,8 +24,8 @@
        query))
 
 (defmacro q [db & query]
-  `(q* ~db (sqlingvo.core/sql ~@(set-db-as-first-argument db query))))
+  `(q* ~db (sqlingvo.core/sql
+            ~@(set-db-as-first-argument db query))))
 
-(defn stop []
-  ;; do nothing for now
-  )
+(defmacro q-one [db & query]
+  `(first (q ~db ~@query)))

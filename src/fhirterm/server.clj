@@ -20,14 +20,14 @@
 (defroutes app
   (context "/ValueSet" []
     (GET "/:id" {{id :id} :params db :db}
-      (let [vs (db/q db
-                     (sql/select [*]
-                       (sql/from :fhir_value_sets)
-                       (sql/where `(= :id ~id))))]
+      (let [vs (db/q-one db
+                         (sql/select [*]
+                           (sql/from :fhir_value_sets)
+                           (sql/where `(= :id ~id))))]
 
         (if (empty? vs)
           (respond-with-not-found)
-          (respond-with-json 200 (:content (first vs)))))))
+          (respond-with-json 200 (:content vs))))))
 
   (route/not-found (respond-with-not-found)))
 
