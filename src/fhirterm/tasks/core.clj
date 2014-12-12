@@ -2,7 +2,8 @@
   (:require [fhirterm.db :as db]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
-            [fhirterm.tasks.import-valuesets :as ivs]))
+            [fhirterm.tasks.import-valuesets :as ivs]
+            [fhirterm.tasks.import-loinc :as import-loinc]))
 
 (defn- usage [options-summary]
   (->> ["FHIRTerm command-line utility"
@@ -38,7 +39,8 @@
         :subname (:db options)}})
 
 (def task-to-namespace-map
-  {"import-vs" ivs/perform})
+  {"import-vs" ivs/perform
+   "import-loinc" import-loinc/perform})
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)
