@@ -12,7 +12,8 @@
                  [http-kit "2.1.16"]
                  [org.clojure/tools.cli "0.3.1"]
                  [sqlingvo "0.7.2"]
-                 [cheshire "5.4.0"]]
+                 [cheshire "5.4.0"]
+                 [org.clojure/data.csv "0.1.2"]]
 
   :profiles {:dev {:source-paths ["dev"]}
              :dependencies [[org.clojure/tools.namespace "0.2.4"]]}

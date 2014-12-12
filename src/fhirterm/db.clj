@@ -11,7 +11,7 @@
   )
 
 (defn e! [db sql]
-  (jdbc/execute! db sql))
+  (jdbc/execute! db [sql]))
 
 (defn i! [& args]
   (apply jdbc/insert! args))
