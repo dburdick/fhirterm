@@ -9,7 +9,8 @@
 
 (defn- insert-value-sets [db valuesets]
   (let [rows (map (fn [vs]
-                    {:id      (:identifier vs)
+                    {:id      (:id vs)
+                     :identifier (:identifier vs)
                      :version (:version vs)
                      :date    (str/replace (or (:date vs) "") #"-" "")
                      :content (json/generate vs)})

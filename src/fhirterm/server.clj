@@ -1,13 +1,35 @@
 (ns fhirterm.server
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
+            [fhirterm.db :as db]
+            [sqlingvo.core :as sql]
+            [fhirterm.json :as json]
             [org.httpkit.server :as http-kit]))
 
-(defroutes app
-  (GET "/" []
-    "Hello world!")
+(defn respond-with-json [status obj]
+  (let [json (if (string? obj) obj (json/generate obj {:pretty true}))]
+    {:status status
+     :body json
+     :content-type "application/json"}))
 
-  (route/not-found "<h1>Page not found</h1>"))
+(defn respond-with-not-found []
+  (respond-with-json 404 {:resourceType "OperationOutcome"
+                          :text "Not found!"
+                          :todo "implement this response"}))
+
+(defroutes app
+  (context "/ValueSet" []
+    (GET "/:id" {{id :id} :params db :db}
+      (let [vs (db/q db
+                     (sql/select [*]
+                       (sql/from :fhir_value_sets)
+                       (sql/where `(= :id ~id))))]
+
+        (if (empty? vs)
+          (respond-with-not-found)
+          (respond-with-json 200 (:content (first vs)))))))
+
+  (route/not-found (respond-with-not-found)))
 
 (defn assoc-into-request-mw [handler data]
   (fn [request]

@@ -4,5 +4,5 @@
 (defn parse [str]
   (json/parse-string str keyword))
 
-(defn generate [data]
-  (json/generate-string data))
+(defn generate [data & options]
+  (json/generate-string data (or options {})))
