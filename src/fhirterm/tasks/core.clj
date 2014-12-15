@@ -2,7 +2,8 @@
   (:require [fhirterm.db :as db]
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.string :as string]
-            [fhirterm.tasks.import-valuesets :as ivs]
+            [fhirterm.tasks.util :refer :all]
+            [fhirterm.tasks.import-valuesets :as import-vs]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
 (defn- usage [options-summary]
@@ -29,17 +30,13 @@
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
-
 (defn- options-to-config [options]
   {:db {:classname "org.sqlite.JDBC"
         :subprotocol "sqlite"
         :subname (:db options)}})
 
 (def task-to-namespace-map
-  {"import-vs" ivs/perform
+  {"import-vs" import-vs/perform
    "import-loinc" import-loinc/perform})
 
 (defn -main [& args]
