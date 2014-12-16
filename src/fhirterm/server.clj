@@ -8,8 +8,7 @@
             [sqlingvo.core :as sql]
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as ns-core]
-            [fhirterm.fhir.parameters :as fhir-parameters]
-            [fhirterm.fhir.operation-outcome :as fhir-op-outcome]
+            [fhirterm.fhir.core :as fhir]
             [org.httpkit.server :as http-kit]))
 
 (defn respond-with [status obj]
@@ -21,7 +20,7 @@
 
 (defn respond-with-outcome [severity type message & [http-status]]
   (respond-with (or http-status 500)
-                (fhir-op-outcome/make severity type message)))
+                (fhir/make-operation-outcome severity type message)))
 
 (defn respond-with-not-found [& [msg]]
   (respond-with-outcome :fatal :not-found
@@ -34,7 +33,7 @@
     (GET "/$lookup" {params :params db :db :as request}
       (let [result (ns-core/lookup db params)]
         (if result
-          (respond-with 200 (fhir-parameters/make result))
+          (respond-with 200 (fhir/make-parameters result))
           (respond-with-not-found "Could not find requested coding"))))
 
     (GET "/:id" {{id :id} :params db :db}
