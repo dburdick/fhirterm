@@ -4,10 +4,20 @@
 
 (def system nil)
 
-(defn- make-system [config]
+(defn- make-system [{env :env :as config}]
+  (when (not (contains? #{:development :production} env))
+    (throw (IllegalArgumentException. (format "Invalid app environment: %s"
+                                              env))))
   (let [db (db/start config)]
     {:server (server/start config db)
-     :db db}))
+     :db db
+     :env env}))
+
+(defn production? []
+  (= (:env system) :production))
+
+(defn development? []
+  (= (:env system) :development))
 
 (defn start [config]
   (alter-var-root #'system

@@ -3,6 +3,7 @@
             [compojure.route :as route]
             [ring.middleware.params :as ring-params]
             [ring.middleware.keyword-params :as ring-kw-params]
+            [ring.middleware.stacktrace :as ring-stacktrace]
             [fhirterm.db :as db]
             [sqlingvo.core :as sql]
             [fhirterm.json :as json]
@@ -12,24 +13,29 @@
             [org.httpkit.server :as http-kit]))
 
 (defn respond-with [status obj]
-  (let [json (if (string? obj) obj (json/generate obj {:pretty true}))]
+  (let [json (if (string? obj) (json/parse obj) obj)
+        json-string (json/generate json {:pretty true})]
     {:status status
-     :body json
+     :body json-string
      :content-type "application/json"}))
 
 (defn respond-with-outcome [severity type message & [http-status]]
   (respond-with (or http-status 500)
                 (fhir-op-outcome/make severity type message)))
 
-(defn respond-with-not-found []
+(defn respond-with-not-found [& [msg]]
   (respond-with-outcome :fatal :not-found
-                        "The requested URL could not be processed"
+                        (or msg
+                            "The requested URL could not be processed")
                         404))
 
 (defroutes app
   (context "/ValueSet" []
     (GET "/$lookup" {params :params db :db :as request}
-      (respond-with 200 (fhir-parameters/make (ns-core/lookup db params))))
+      (let [result (ns-core/lookup db params)]
+        (if result
+          (respond-with 200 (fhir-parameters/make result))
+          (respond-with-not-found "Could not find requested coding"))))
 
     (GET "/:id" {{id :id} :params db :db}
       (let [vs (db/q-one db
@@ -37,7 +43,7 @@
                            (sql/from :fhir_value_sets)
                            (sql/where `(= :id ~id))))]
 
-        (if (empty? vs)
+        (if (or (empty? vs) (nil? vs))
           (respond-with-not-found)
           (respond-with 200 (:content vs))))))
 
@@ -47,14 +53,31 @@
   (fn [request]
     (handler (merge request data))))
 
-(defn- make-handler [db]
+(defn wrap-with-operation-outcome-exception-handler [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Exception e
+        (respond-with-outcome :fatal :exception
+                              (format "Unexpected error while processing your request:\n%s"
+                                      (.getMessage e))
+                              500)))))
+
+(defn wrap-with-exception-handler [handler env]
+  (if (= :production env)
+    (wrap-with-operation-outcome-exception-handler handler)
+    (ring-stacktrace/wrap-stacktrace handler)))
+
+(defn- make-handler [env db]
   (-> #(app %)
       (ring-kw-params/wrap-keyword-params)
       (ring-params/wrap-params)
-      (assoc-into-request-mw {:db db})))
+      (wrap-with-exception-handler env)
+      (assoc-into-request-mw {:db db
+                              :env env})))
 
-(defn start [config db]
-  (http-kit/run-server (make-handler db)
+(defn start [{env :env :as config} db]
+  (http-kit/run-server (make-handler env db)
                        {:port (get-in config [:http :port])}))
 
 (defn stop [server]

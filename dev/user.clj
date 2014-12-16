@@ -6,7 +6,8 @@
    [clojure.tools.namespace.repl :refer (refresh)]))
 
 (def config
-  {:http {:port 7654}
+  {:env :development
+   :http {:port 7654}
    :db   {:classname "org.sqlite.JDBC"
           :subprotocol "sqlite"
           :subname "db/fhirterm.sqlite3"}})
