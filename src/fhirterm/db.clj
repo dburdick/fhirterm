@@ -17,6 +17,7 @@
   (apply jdbc/insert! args))
 
 (defn q* [db & args]
+  (println "[SQL]" (pr-str (first args)))
   (apply jdbc/query db args))
 
 (defn- set-db-as-first-argument [db query]

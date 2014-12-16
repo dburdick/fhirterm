@@ -16,8 +16,16 @@
 
     nil))
 
-(defn lookup [db {:keys [system code] :as params}]
+(defn- invoke-ns-method [system method-name & args]
   (let [system-uri (normalize-system-uri system)
         system-ns (resolve-system-ns-by-uri system-uri)]
-    (when system-ns
-      ((ns-resolve system-ns 'lookup) db params))))
+
+    (if system-ns
+      (apply (ns-resolve system-ns method-name) args)
+      (throw (IllegalArgumentException. (format "Unknown NamingSystem: %s" system))))))
+
+(defn lookup-code [db {:keys [system] :as params}]
+  (invoke-ns-method system 'lookup-code db params))
+
+(defn filter-codes [db system filters]
+  (invoke-ns-method system 'filter-codes db filters))

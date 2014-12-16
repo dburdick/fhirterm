@@ -44,7 +44,7 @@
       (csv/read-file csv-path
                      {:skip-first-row true}
                      (fn [row]
-                       (db/i! db loinc-table columns row))))
+                       (db/i! trans loinc-table columns row))))
 
     (let [loincs-count (db/q-one db (sql/select [(sql/as '(count :*) :count)]
                                       (sql/from loinc-table)))]

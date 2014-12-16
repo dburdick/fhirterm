@@ -9,6 +9,7 @@
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]
+            [fhirterm.fhir.value-set :as vs]
             [org.httpkit.server :as http-kit]))
 
 (defn respond-with [status obj]
@@ -31,26 +32,32 @@
 (defroutes app
   (context "/ValueSet" []
     (GET "/$lookup" {params :params db :db :as request}
-      (let [result (ns-core/lookup db params)]
+      (let [result (ns-core/lookup-code db params)]
         (if result
           (respond-with 200 (fhir/make-parameters result))
           (respond-with-not-found "Could not find requested coding"))))
 
     (GET "/:id" {{id :id} :params db :db}
-      (let [vs (db/q-one db
-                         (sql/select [*]
-                           (sql/from :fhir_value_sets)
-                           (sql/where `(= :id ~id))))]
+      (let [vs (vs/find-by-id db id)]
+        (if vs
+          (respond-with 200 vs)
+          (respond-with-not-found (format "Could not find ValueSet with id = %s" id)))))
 
-        (if (or (empty? vs) (nil? vs))
-          (respond-with-not-found)
-          (respond-with 200 (:content vs))))))
+    (GET "/:id/$expand" {{id :id} :params db :db :as request}
+      (let [vs (vs/find-by-id db id)]
+        (if vs
+          (respond-with 200 (vs/expand db vs))
+          (respond-with-not-found (format "Could not find ValueSet with id = %s" id))))))
 
   (route/not-found (respond-with-not-found)))
 
 (defn assoc-into-request-mw [handler data]
   (fn [request]
     (handler (merge request data))))
+
+(defn wrap-with-benchmark [handler]
+  (fn [request]
+    (time (handler request))))
 
 (defn wrap-with-operation-outcome-exception-handler [handler]
   (fn [request]
@@ -72,6 +79,7 @@
       (ring-kw-params/wrap-keyword-params)
       (ring-params/wrap-params)
       (wrap-with-exception-handler env)
+      (wrap-with-benchmark)
       (assoc-into-request-mw {:db db
                               :env env})))
 
