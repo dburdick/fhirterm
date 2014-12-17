@@ -32,8 +32,13 @@
 (def loinc-table :loinc_loincs)
 
 (defn- prepare-db [db]
-  (db/e! db
-         (apply jdbc/create-table-ddl loinc-table loinc-columns))
+  (jdbc/with-db-transaction [trans db]
+    (db/e! trans
+           (apply jdbc/create-table-ddl loinc-table loinc-columns))
+
+    (db/e! trans
+           (format "CREATE INDEX loinc_loincs_on_order_obs_idx ON %s(order_obs)"
+                   (name loinc-table))))
 
   (println (format "Created %s table" (name loinc-table))))
 

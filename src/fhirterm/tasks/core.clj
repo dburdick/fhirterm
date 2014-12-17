@@ -16,6 +16,7 @@
         ""
         "Actions:"
         "  import-vs     Import FHIR ValueSets into database"
+        "  import-loinc  Import LOINC NS from ZIP distribution"
         ""
         "Please refer to the README for more information."]
        (string/join \newline)))

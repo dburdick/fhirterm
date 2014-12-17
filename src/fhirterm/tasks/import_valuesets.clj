@@ -7,6 +7,20 @@
 
 (def vs-url "http://www.hl7.org/implement/standards/FHIR-Develop/valuesets.json")
 
+(def table-columns
+  [[:id "varchar primary key"]
+   [:identifier "varchar"]
+   [:version "varchar"]
+   [:date "integer"]
+   [:content "text"]])
+
+(defn- create-value-sets-table [db]
+  (jdbc/with-db-transaction [trans db]
+    (db/e! trans
+           (apply jdbc/create-table-ddl :fhir_value_sets table-columns))
+
+    (db/e! trans "CREATE UNIQUE INDEX fhir_value_sets_on_identifier_idx ON fhir_value_sets(identifier)")))
+
 (defn- insert-value-sets [db valuesets]
   (let [rows (map (fn [vs]
                     {:id      (:id vs)
@@ -17,7 +31,7 @@
                   valuesets)]
 
     (jdbc/with-db-transaction [trans db]
-      (db/e! trans ["DELETE FROM fhir_value_sets"])
+      (db/e! trans "DELETE FROM fhir_value_sets")
 
       (doseq [row rows]
         (db/i! trans "fhir_value_sets" row)))
@@ -31,6 +45,8 @@
 
 (defn perform [db args]
   (println "Importing FHIR ValueSets from" vs-url)
+
+  (create-value-sets-table db)
 
   (let [{:keys [body status headers]} @(http/get vs-url)]
     (println (format "HTTP status: %d, bytes read: %d"
