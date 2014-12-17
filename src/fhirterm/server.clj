@@ -5,7 +5,6 @@
             [ring.middleware.keyword-params :as ring-kw-params]
             [ring.middleware.stacktrace :as ring-stacktrace]
             [fhirterm.db :as db]
-            [sqlingvo.core :as sql]
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]

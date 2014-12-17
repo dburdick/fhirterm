@@ -1,14 +1,13 @@
 (ns fhirterm.fhir.value-set
   (:require [fhirterm.db :as db]
-            [sqlingvo.core :as sql]
+            [honeysql.helpers :as sql]
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as naming-system]))
 
 (defn find-by-id [db id]
-  (let [result (db/q-one db
-                         (sql/select [:content]
-                           (sql/from :fhir_value_sets)
-                           (sql/where `(= :id ~id))))]
+  (let [result (db/q-one db (-> (sql/select :content)
+                                (sql/from :fhir_value_sets)
+                                (sql/where [:= :id id])))]
 
     (if result
       (json/parse (:content result))

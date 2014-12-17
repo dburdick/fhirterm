@@ -1,6 +1,6 @@
 (ns fhirterm.tasks.import-loinc
   (:require [fhirterm.db :as db]
-            [sqlingvo.core :as sql]
+            [honeysql.helpers :as sql]
             [clojure.java.jdbc :as jdbc]
             [clojure.java.io :as io]
             [clojure.string :as str]
@@ -51,8 +51,8 @@
                      (fn [row]
                        (db/i! trans loinc-table columns row))))
 
-    (let [loincs-count (db/q-one db (sql/select [(sql/as '(count :*) :count)]
-                                      (sql/from loinc-table)))]
+    (let [loincs-count (db/q-one db (-> (sql/select [:%count.* :count])
+                                        (sql/from loinc-table)))]
       (println (format "Done, imported %d LOINC records" (:count loincs-count))))))
 
 (defn- perform* [db zip-path]
