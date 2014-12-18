@@ -18,14 +18,25 @@
        :designation [{:value (:shortname found-loinc)}
                      {:value (:long_common_name found-loinc)}]})))
 
-(defn- filter-to-sql-cond [f]
-  (println "!!!" (pr-str f))
-  (case (:op f)
-    "=" [:= (keyword (str/lower-case (:property f))) (:value f)]
-    "in" (let [column (if (= (:property f) "code") :loinc_num (:property f))]
-           [:in column (:value f)])
+(def property-to-column-map
+  {"code" :loinc_num
+   "order_obs" :order_obs
+   "scale_typ" :scale_type})
 
-    (throw (IllegalArgumentException. (format "Unknown filtering op: %s" (:op f))))))
+(def value-fixup-map
+  {:scale_type {"DOC" "Doc"}})
+
+(defn- filter-to-sql-cond [f]
+  (let [property (:property f)
+        column (get property-to-column-map
+                    (str/lower-case property)
+                    (keyword (str/lower-case property)))]
+
+    (case (:op f)
+      "=" [:= column (get-in value-fixup-map [column (:value f)]
+                             (:value f))]
+      "in" [:in column (:value f)]
+      (throw (IllegalArgumentException. (format "Unknown filtering op: %s" (:op f)))))))
 
 (defn- filters-to-sql-cond [filters]
   (let [predicate (if (empty? filters)
