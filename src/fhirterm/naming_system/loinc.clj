@@ -22,9 +22,14 @@
   [:= (keyword (str/lower-case (:property f))) (:value f)])
 
 (defn- filters-to-sql-cond [filters]
-  (into [:or] (map (fn [fs]
-                     (into [:and] (map filter-to-sql-cond fs)))
-                   filters)))
+  (let [predicate (if (empty? filters)
+                    [:= 1 1]
+                    (into [:or] (map (fn [fs]
+                                       (into [:and] (map filter-to-sql-cond fs)))
+                                     filters)))]
+    [:and
+     predicate
+     [:in :status ["ACTIVE" "TRIAL" "DISCOURAGED"]]]))
 
 (defn- row-to-coding [row]
   {:system loinc-uri

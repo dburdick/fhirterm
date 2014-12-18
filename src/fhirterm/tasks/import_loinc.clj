@@ -30,15 +30,17 @@
    [:common_si_test_rank "integer"] [:hl7_attachment_structure "varchar"]])
 
 (def loinc-table :loinc_loincs)
+(def indices ["CREATE INDEX loinc_loincs_on_order_obs_idx ON %s(order_obs)"
+              "CREATE INDEX loinc_loincs_on_status_idx ON %s(status)"])
 
 (defn- prepare-db [db]
   (jdbc/with-db-transaction [trans db]
     (db/e! trans
            (apply jdbc/create-table-ddl loinc-table loinc-columns))
 
-    (db/e! trans
-           (format "CREATE INDEX loinc_loincs_on_order_obs_idx ON %s(order_obs)"
-                   (name loinc-table))))
+    (doseq [i indices]
+      (db/e! trans
+             (format i (name loinc-table)))))
 
   (println (format "Created %s table" (name loinc-table))))
 

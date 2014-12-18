@@ -22,7 +22,8 @@
 (defn- expand* [db vs]
   (let [includes (get-in vs [:compose :include])
         ns-and-filters (reduce (fn [acc [s fs]]
-                                 (assoc acc s (map :filter fs)))
+                                 (assoc acc s (filter (complement nil?)
+                                                      (map :filter fs))))
                                {} (group-by :system includes))]
 
     (reduce (fn [res [ns filters]]
@@ -56,4 +57,5 @@
 
     (assoc vs :expansion {:identifier (util/uuid)
                           :timestamp (time/now)
-                          :contains filtered-result})))
+                          :contains (map (fn [x] (dissoc x :search-vector))
+                                         filtered-result)})))

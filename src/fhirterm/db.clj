@@ -35,6 +35,7 @@
 
 (defn q [& args]
   (let [[db sql-vector] (db-and-query-from-args args)]
+    (println "SQL: " (pr-str sql-vector))
     (jdbc/query db sql-vector)))
 
 (defn e! [& args]
