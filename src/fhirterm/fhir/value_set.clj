@@ -7,9 +7,6 @@
             [clj-time.core :as time]
             [clojure.string :as str]))
 
-(def expansion-cache (atom {}))
-(def enable-cache false)
-
 (defn find-by-id [db id]
   (let [result (db/q-one db (-> (sql/select :content)
                                 (sql/from :fhir_value_sets)
@@ -24,17 +21,23 @@
       (into (vector (map (fn [cs] {:property "code" :value cs :op "in"})
                          (map (fn [i] (map :code (:concept i))) inc))))))
 
-(defn- expand* [db vs]
+(defn- expand-with-includes [db vs]
   (let [includes (get-in vs [:compose :include])
         ns-and-filters (reduce (fn [acc [s fs]]
                                  (assoc acc s (filter (complement nil?)
                                                       (filters-from-include fs))))
                                {} (group-by :system includes))]
 
-    (println "!!!! expanding by =>" (pr-str ns-and-filters))
     (reduce (fn [res [ns filters]]
               (into res (naming-system/filter-codes db ns filters)))
             [] ns-and-filters)))
+
+(defn- expand-with-defines [db {{:keys [system concept]} :define :as vs}]
+  (map (fn [c]
+         {:code (:code c)
+          :display (:display c)
+          :system system})
+       concept))
 
 (defn- apply-coding-filters [codings params]
   (let [filter-str (:filter params)]
@@ -49,16 +52,15 @@
       ;; otherwise, just return all codings
       codings)))
 
+(defn- expand* [db vs]
+  (cond
+   (contains? vs :define) (expand-with-defines db vs)
+   (contains? vs :include) (expand-with-includes db vs)
+   :else (throw (RuntimeException. (format "Don't know how to expand VS %s"
+                                           (:identifier vs))))))
+
 (defn expand [db vs params]
-  (let [result (if (and enable-cache
-                        (contains? @expansion-cache (:identifier vs)))
-
-                 (get @expansion-cache (:identifier vs))
-                 (let [r (expand* db vs)]
-                   (swap! expansion-cache (fn [c]
-                                            (assoc c (:identifier vs) r)))
-                   r))
-
+  (let [result (expand* db vs)
         filtered-result (apply-coding-filters result params)]
 
     (assoc vs :expansion {:identifier (util/uuid)
