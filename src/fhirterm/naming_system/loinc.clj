@@ -31,7 +31,8 @@
    :abstract false
    :version "to.do"
    :code (:loinc_num row)
-   :display (:shortname row)})
+   :display (:shortname row)
+   :search-vector (str/lower-case (:shortname row))})
 
 (defn filter-codes [db filters]
   (let [codings (db/q db (-> (sql/select :loinc_num :shortname)
