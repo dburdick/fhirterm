@@ -19,13 +19,19 @@
       (json/parse (:content result))
       nil)))
 
+(defn- filters-from-include [inc]
+  (-> (map :filter inc)
+      (into (vector (map (fn [cs] {:property "code" :value cs :op "in"})
+                         (map (fn [i] (map :code (:concept i))) inc))))))
+
 (defn- expand* [db vs]
   (let [includes (get-in vs [:compose :include])
         ns-and-filters (reduce (fn [acc [s fs]]
                                  (assoc acc s (filter (complement nil?)
-                                                      (map :filter fs))))
+                                                      (filters-from-include fs))))
                                {} (group-by :system includes))]
 
+    (println "!!!! expanding by =>" (pr-str ns-and-filters))
     (reduce (fn [res [ns filters]]
               (into res (naming-system/filter-codes db ns filters)))
             [] ns-and-filters)))

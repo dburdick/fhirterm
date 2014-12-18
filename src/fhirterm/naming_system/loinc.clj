@@ -19,7 +19,13 @@
                      {:value (:long_common_name found-loinc)}]})))
 
 (defn- filter-to-sql-cond [f]
-  [:= (keyword (str/lower-case (:property f))) (:value f)])
+  (println "!!!" (pr-str f))
+  (case (:op f)
+    "=" [:= (keyword (str/lower-case (:property f))) (:value f)]
+    "in" (let [column (if (= (:property f) "code") :loinc_num (:property f))]
+           [:in column (:value f)])
+
+    (throw (IllegalArgumentException. (format "Unknown filtering op: %s" (:op f))))))
 
 (defn- filters-to-sql-cond [filters]
   (let [predicate (if (empty? filters)
