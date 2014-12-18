@@ -33,11 +33,17 @@
             [] ns-and-filters)))
 
 (defn- expand-with-defines [db {{:keys [system concept]} :define :as vs}]
-  (map (fn [c]
-         {:code (:code c)
-          :display (:display c)
-          :system system})
-       concept))
+  (reduce (fn reduce-fn [result c]
+            (let [result (conj result
+                               {:code    (:code c)
+                                :display (:display c)
+                                :system  system})
+                  inner-concept (:concept c)]
+              (if inner-concept
+                (into result (reduce reduce-fn [] inner-concept))
+                result)))
+          []
+          concept))
 
 (defn- apply-coding-filters [codings params]
   (let [filter-str (:filter params)]
