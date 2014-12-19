@@ -40,13 +40,12 @@
 
 (defn- filters-to-sql-cond [filters]
   (let [predicate (if (empty? filters)
-                    [:= 1 1]
-                    (into [:or] (map (fn [fs]
-                                       (into [:and] (map filter-to-sql-cond fs)))
-                                     filters)))]
-    [:and
-     predicate
-     [:in :status ["ACTIVE" "TRIAL" "DISCOURAGED"]]]))
+                    nil
+                    (into [:or]
+                          (map (fn [fs]
+                                 (into [:and] (map filter-to-sql-cond fs)))
+                               filters)))]
+    predicate))
 
 (defn- row-to-coding [row]
   {:system loinc-uri
@@ -56,8 +55,19 @@
    :display (:shortname row)
    :search-vector (str/lower-case (:shortname row))})
 
+(defn- combine-preds [inc-pred excl-pred]
+  (cond
+   (and inc-pred excl-pred) [:and inc-pred [:not excl-pred]]
+   (and inc-pred (not excl-pred)) inc-pred
+   (and (not inc-pred) excl-pred) [:not excl-pred]
+   :default nil))
+
 (defn filter-codes [db filters]
-  (let [codings (db/q db (-> (sql/select :loinc_num :shortname)
+  (let [pred (combine-preds (filters-to-sql-cond (:include filters))
+                            (filters-to-sql-cond (:exclude filters)))
+
+        codings (db/q db (-> (sql/select :loinc_num :shortname)
                              (sql/from :loinc_loincs)
-                             (sql/where (filters-to-sql-cond filters))))]
+                             ((fn [q]
+                                (if pred (sql/where q pred) q)))))]
     (map row-to-coding codings)))

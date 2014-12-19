@@ -5,6 +5,7 @@
             [fhirterm.util :as util]
             [fhirterm.naming-system.core :as naming-system]
             [clj-time.core :as time]
+            [clojure.set :as set]
             [clojure.string :as str]))
 
 (defn find-by-id [db id]
@@ -12,25 +13,42 @@
                                 (sql/from :fhir_value_sets)
                                 (sql/where [:= :id id])))]
 
-    (if result
-      (json/parse (:content result))
-      nil)))
+    (if result (json/parse (:content result)) nil)))
 
-(defn- filters-from-include [inc]
-  (-> (map :filter inc)
-      (into (vector (map (fn [cs] {:property "code" :value cs :op "in"})
-                         (map (fn [i] (map :code (:concept i))) inc))))))
+(defn find-by-identifier [db identifier]
+  (let [result (db/q-one db (-> (sql/select :content)
+                                (sql/from :fhir_value_sets)
+                                (sql/where [:= :identifier identifier])))]
 
-(defn- expand-with-compose-include [expansion db vs]
-  (let [includes (get-in vs [:compose :include])
-        ns-and-filters (reduce (fn [acc [s fs]]
-                                 (assoc acc s (filter (complement nil?)
-                                                      (filters-from-include fs))))
-                               {} (group-by :system includes))]
+    (if result (json/parse (:content result)) nil)))
+
+
+(defn- filters-from-include-or-exclude [includes]
+  (map (fn [inc]
+         (let [regular-filters (or (:filter inc) [])
+               codes (or (map :code (:concept inc)) [])
+               code-filter (if (empty? codes)
+                             []
+                             [{:op "in" :property "code" :value codes}])]
+
+           (into regular-filters code-filter)))
+       includes))
+
+(defn- expand-with-compose-include-and-exclude [expansion db vs]
+  (let [includes-by-syst (group-by :system (get-in vs [:compose :include]))
+        excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))
+        filters-for-external-ns
+        (reduce (fn [acc syst]
+                  (assoc acc syst
+                         {:include
+                          (filters-from-include-or-exclude (get includes-by-syst syst))
+                          :exclude
+                          (filters-from-include-or-exclude (get excludes-by-syst syst))}))
+                {} (keys includes-by-syst))]
 
     (reduce (fn [res [ns filters]]
               (into res (naming-system/filter-codes db ns filters)))
-            expansion ns-and-filters)))
+            expansion filters-for-external-ns)))
 
 (defn- expand-with-define [expansion db {{:keys [system concept]} :define :as vs}]
   (reduce (fn reduce-fn [result c]
@@ -58,15 +76,20 @@
       ;; otherwise, just return all codings
       codings)))
 
-(defn- expand-with-compose-exclude [expansion db vs]
-  ;; todo!!
-  expansion)
+(defn- expand-with-compose-import [expansion db vs]
+  (let [imports (get-in vs [:compose :import])]
+    (reduce (fn [result identifier]
+              (let [imported-vs (find-by-identifier db identifier)]
+                (if imported-vs
+                  (into result (expand* db imported-vs {}))
+                  result)))
+            expansion imports)))
 
 (defn- expand* [db vs params]
   (-> []
       (expand-with-define db vs)
-      (expand-with-compose-include db vs)
-      (expand-with-compose-exclude db vs)
+      (expand-with-compose-import db vs)
+      (expand-with-compose-include-and-exclude db vs)
       (apply-expansion-filters params)))
 
 (defn expand [db vs params]
