@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]))
 
 (def uri-to-symbolic-name
-  {"http://loinc.org" :loinc})
+  {"http://loinc.org" :loinc
+   "http://snomed.info/sct" :snomed})
 
 (defn- normalize-system-uri [uri]
   (str/replace uri #"/$" ""))
