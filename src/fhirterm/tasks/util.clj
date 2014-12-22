@@ -1,10 +1,14 @@
 (ns fhirterm.tasks.util
   (:require [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.java.shell :as sh]))
 
 (defn exit [status msg]
   (println msg)
   (System/exit status))
+
+(defn make-path [& args]
+  (apply str/join "/" args))
 
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
@@ -23,3 +27,27 @@
           (if (.mkdir tmp-dir)
             tmp-dir
             (recur (inc num-attempts))))))))
+
+(defn check-zip-file-is-specified [zip-file file-name-pattern]
+  (if (not zip-file)
+    (exit 1 (format "You have to specify path to downloaded %1$s file.\nExample: lein task import-loinc ~/Downloads/%1$s"
+                    file-name-pattern))
+
+    (when (not (.canRead (io/file zip-file)))
+      (exit (format "File %s is not readable!" zip-file) 1))))
+
+(defn unzip-file [zip-path f]
+  (let [tmp-path (.getPath (mk-tmp-dir!))]
+    (try
+      (let [unzip-result (sh/sh "unzip" zip-path "-d" tmp-path)]
+        (if (not= 0 (:exit unzip-result))
+          (exit 1
+                (str "Cannot unzip archive. Do you have unzip utility installed?\n"
+                     "Additional information: " (pr-str unzip-result)))
+
+          (do
+            (println "Unzipped successfuly")
+            (f tmp-path))))
+
+      (finally
+        (println "Temp directory removed: " (pr-str (sh/sh "rm" "-rf" tmp-path)))))))

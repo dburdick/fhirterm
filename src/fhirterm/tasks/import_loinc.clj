@@ -58,27 +58,12 @@
       (println (format "Done, imported %d LOINC records" (:count loincs-count))))))
 
 (defn- perform* [db zip-path]
-  (let [tmp-path (.getPath (mk-tmp-dir!))
-        unzip-result (sh/sh "unzip" zip-path "-d" tmp-path)]
-    (if (not= 0 (:exit unzip-result))
-      (exit (str "Cannot unzip archive. Do you have unzip utility installed?\n"
-                 "Additional information: " (pr-str unzip-result)) 1)
-
-      (do
-        (println "Unzipped successfuly")
-        (prepare-db db)
-        (load-loinc-csv db (str/join "/" [tmp-path "loinc.csv"]))))
-
-    (sh/sh "rm" "-rf" tmp-path)
-    (println "Temp directory removed")))
+  (unzip-file zip-path
+              (fn [tmp-path]
+                (prepare-db db)
+                (load-loinc-csv db (make-path tmp-path "loinc.csv")))))
 
 (defn perform [db args]
   (let [zip-file (first args)]
-    (if (not zip-file)
-      (exit "You have to specify path to downloaded LOINC_XXX_Text.zip file\n"
-            "Example: lein task import-loinc ~/Downloads/LOINC_248_Text.zip"
-            1)
-
-      (if (not (.canRead (io/file zip-file)))
-        (exit (format "File %s is not readable!" zip-file) 1)
-        (perform* db zip-file)))))
+    (check-zip-file-is-specified zip-file "LOINC_XXX_Text.zip")
+    (perform* db zip-file)))

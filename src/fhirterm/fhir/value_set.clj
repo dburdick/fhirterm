@@ -76,6 +76,7 @@
       ;; otherwise, just return all codings
       codings)))
 
+(declare expand*)
 (defn- expand-with-compose-import [expansion db vs]
   (let [imports (get-in vs [:compose :import])]
     (reduce (fn [result identifier]

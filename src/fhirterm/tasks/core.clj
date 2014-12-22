@@ -4,6 +4,7 @@
             [clojure.string :as string]
             [fhirterm.tasks.util :refer :all]
             [fhirterm.tasks.import-valuesets :as import-vs]
+            [fhirterm.tasks.import-snomed :as import-snomed]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
 (defn- usage [options-summary]
@@ -15,8 +16,9 @@
         options-summary
         ""
         "Actions:"
-        "  import-vs     Import FHIR ValueSets into database"
-        "  import-loinc  Import LOINC NS from ZIP distribution"
+        "  import-vs      Import FHIR ValueSets into database"
+        "  import-loinc   Import LOINC NS from ZIP distribution"
+        "  import-snomed  Import SNOMEDCT NS from ZIP distribution"
         ""
         "Please refer to the README for more information."]
        (string/join \newline)))
@@ -38,7 +40,8 @@
 
 (def task-to-namespace-map
   {"import-vs" import-vs/perform
-   "import-loinc" import-loinc/perform})
+   "import-loinc" import-loinc/perform
+   "import-snomed" import-snomed/perform})
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (parse-opts args cli-options)
