@@ -7,7 +7,7 @@
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/java.jdbc "0.3.6"]
-                 [org.xerial/sqlite-jdbc "3.8.7"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]
                  [compojure "1.3.1"]
                  [http-kit "2.1.16"]
                  [org.clojure/tools.cli "0.3.1"]

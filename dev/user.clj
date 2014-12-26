@@ -8,9 +8,11 @@
 (def config
   {:env :development
    :http {:port 7654}
-   :db   {:classname "org.sqlite.JDBC"
-          :subprotocol "sqlite"
-          :subname "db/fhirterm.sqlite3"}})
+   :db   {:classname "org.postgresql.Driver"
+          :subprotocol "postgresql"
+          :user "fhirterm"
+          :password "fhirterm"
+          :subname "//127.0.0.1:5432/msls"}})
 
 (defn start []
   (system/start config))
