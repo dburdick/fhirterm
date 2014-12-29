@@ -13,7 +13,7 @@
                                 (sql/from :fhir_value_sets)
                                 (sql/where [:= :id id])))]
 
-    (if result (json/parse (:content result)) nil)))
+    (if result (:content result) nil)))
 
 (defn find-by-identifier [db identifier]
   (let [result (db/q-one db (-> (sql/select :content)

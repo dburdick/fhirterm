@@ -5,19 +5,11 @@
             [fhirterm.json :as json]
             [clj-time.format :as tf]
             [clojure.string :as str]
-            [clj-time.coerce :as tc])
-  (:import java.sql.Timestamp
-           org.postgresql.util.PGobject))
+            [clj-time.coerce :as tc]))
 
 (def vs-url "http://www.hl7.org/implement/standards/FHIR-Develop/valuesets.json")
 
 (def date-formatter (tf/formatter "yyyy-MM-dd"))
-
-(defn pg-json [json]
-  (let [pg-object (org.postgresql.util.PGobject.)]
-    (.setType pg-object "jsonb")
-    (.setValue pg-object (json/generate json))
-    pg-object))
 
 (def table-columns
   [[:id "varchar primary key"]
@@ -41,9 +33,9 @@
                        :identifier identifier
                        :version version
                        :date (if (not (str/blank? fixed-date))
-                               (tc/to-sql-time (tf/parse date-formatter fixed-date))
+                               (tf/parse date-formatter fixed-date)
                                nil)
-                       :content (pg-json vs)}))
+                       :content (db/pg-obj :jsonb vs)}))
                   valuesets)]
 
     (jdbc/with-db-transaction [trans db]
