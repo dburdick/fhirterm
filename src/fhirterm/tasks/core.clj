@@ -24,8 +24,28 @@
        (string/join \newline)))
 
 (def cli-options
-  [["-d" "--db PATH" "Path to SQLite database file"
-    :default ""
+  [["-d" "--db" "PostgreSQL database name"
+    :default "fhirterm"
+    :parse-fn str
+    :validate [#(not (clojure.string/blank? %)) "Must be specified"]]
+
+   ["-h" "--host" "PostgreSQL host"
+    :default "localhost"
+    :parse-fn str
+    :validate [#(not (clojure.string/blank? %)) "Must be specified"]]
+
+   ["-p" "--port" "PostgreSQL port"
+    :default "5432"
+    :parse-fn str
+    :validate [#(not (clojure.string/blank? %)) "Must be specified"]]
+
+   ["-U" "--user" "PostgreSQL user"
+    :default "fhirterm"
+    :parse-fn str
+    :validate [#(not (clojure.string/blank? %)) "Must be specified"]]
+
+   ["-W" "--password" "PostgreSQL password"
+    :default "fhirterm"
     :parse-fn str
     :validate [#(not (clojure.string/blank? %)) "Must be specified"]]])
 
@@ -34,9 +54,14 @@
        (string/join \newline errors)))
 
 (defn- options-to-config [options]
-  {:db {:classname "org.sqlite.JDBC"
-        :subprotocol "sqlite"
-        :subname (:db options)}})
+  {:db {:classname "org.postgresql.Driver"
+        :subprotocol "postgresql"
+        :user (:user options)
+        :password (:password options)
+        :subname (format "//%s:%s/%s"
+                         (:host options)
+                         (:port options)
+                         (:db options))}})
 
 (def task-to-namespace-map
   {"import-vs" import-vs/perform

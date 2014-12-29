@@ -1,9 +1,22 @@
 (ns fhirterm.db
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.set :as set]
+            [clojure.string :as str]
             [honeysql.core :as honeysql]))
 
 (def ^:dynamic *db* nil)
+
+(defmacro report-actual-sql-error [& body]
+  `(try
+     ~@body
+     (catch java.sql.SQLException e#
+       (if (.getNextException e#) ;; rethrow exception containing SQL error
+         (let [msg# (.getMessage (.getNextException e#))]
+           (throw (java.sql.SQLException.
+                   (str (str/replace (.getMessage e#)
+                                     "Call getNextException to see the cause." "")
+                        "\n" msg#))))
+         (throw e#)))))
 
 (defn start [{config :db}]
   (alter-var-root #'*db*
@@ -34,15 +47,18 @@
     [db sql-vector]))
 
 (defn q [& args]
-  (let [[db sql-vector] (db-and-query-from-args args)]
-    (jdbc/query db sql-vector)))
+  (report-actual-sql-error
+   (let [[db sql-vector] (db-and-query-from-args args)]
+     (jdbc/query db sql-vector))))
 
 (defn e! [& args]
-  (let [[db sql-vector] (db-and-query-from-args args)]
-    (jdbc/execute! db sql-vector)))
+  (report-actual-sql-error
+   (let [[db sql-vector] (db-and-query-from-args args)]
+     (jdbc/execute! db sql-vector))))
 
 (defn i! [db & args]
-  (apply jdbc/insert! db args))
+  (report-actual-sql-error
+   (apply jdbc/insert! db args)))
 
 (defn q-one [& args]
   (first (apply q args)))

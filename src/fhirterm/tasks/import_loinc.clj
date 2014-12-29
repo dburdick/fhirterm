@@ -2,10 +2,6 @@
   (:require [fhirterm.db :as db]
             [honeysql.helpers :as sql]
             [clojure.java.jdbc :as jdbc]
-            [clojure.java.io :as io]
-            [clojure.string :as str]
-            [clojure.java.shell :as sh]
-            [fhirterm.csv :as csv]
             [fhirterm.tasks.util :refer :all]))
 
 (def loinc-columns
@@ -45,17 +41,14 @@
   (println (format "Created %s table" (name loinc-table))))
 
 (defn- load-loinc-csv [db csv-path]
-  (let [columns (map first loinc-columns)]
-    (jdbc/with-db-transaction [trans db]
-      (println "Uploading...")
-      (csv/read-file csv-path
-                     {:skip-first-row true}
-                     (fn [row]
-                       (db/i! trans loinc-table columns row))))
+  (println "Uploading LOINC CSV")
 
-    (let [loincs-count (db/q-one db (-> (sql/select [:%count.* :count])
-                                        (sql/from loinc-table)))]
-      (println (format "Done, imported %d LOINC records" (:count loincs-count))))))
+  (db/e! (format "COPY loinc_loincs FROM '%s' WITH DELIMITER AS ',' CSV HEADER QUOTE AS '\"'"
+                 csv-path))
+
+  (let [loincs-count (db/q-val db (-> (sql/select [:%count.* :count])
+                                      (sql/from loinc-table)))]
+    (println (format "Done, imported %d LOINC records" loincs-count))))
 
 (defn- perform* [db zip-path]
   (unzip-file zip-path

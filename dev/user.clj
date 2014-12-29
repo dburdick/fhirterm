@@ -12,7 +12,7 @@
           :subprotocol "postgresql"
           :user "fhirterm"
           :password "fhirterm"
-          :subname "//127.0.0.1:5432/msls"}})
+          :subname "//127.0.0.1:5432/fhirterm"}})
 
 (defn start []
   (system/start config))
