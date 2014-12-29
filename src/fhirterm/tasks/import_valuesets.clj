@@ -2,37 +2,51 @@
   (:require [fhirterm.db :as db]
             [org.httpkit.client :as http]
             [clojure.java.jdbc :as jdbc]
+            [fhirterm.json :as json]
+            [clj-time.format :as tf]
             [clojure.string :as str]
-            [fhirterm.json :as json]))
+            [clj-time.coerce :as tc])
+  (:import java.sql.Timestamp
+           org.postgresql.util.PGobject))
 
 (def vs-url "http://www.hl7.org/implement/standards/FHIR-Develop/valuesets.json")
+
+(def date-formatter (tf/formatter "yyyy-MM-dd"))
+
+(defn pg-json [json]
+  (let [pg-object (org.postgresql.util.PGobject.)]
+    (.setType pg-object "jsonb")
+    (.setValue pg-object (json/generate json))
+    pg-object))
 
 (def table-columns
   [[:id "varchar primary key"]
    [:identifier "varchar"]
    [:version "varchar"]
-   [:date "integer"]
-   [:content "text"]])
+   [:date "date"]
+   [:content "jsonb"]])
 
 (defn- create-value-sets-table [db]
   (jdbc/with-db-transaction [trans db]
+    (db/e! trans "DROP TABLE IF EXISTS fhir_value_sets")
     (db/e! trans
            (apply jdbc/create-table-ddl :fhir_value_sets table-columns))
 
     (db/e! trans "CREATE UNIQUE INDEX fhir_value_sets_on_identifier_idx ON fhir_value_sets(identifier)")))
 
 (defn- insert-value-sets [db valuesets]
-  (let [rows (map (fn [vs]
-                    {:id      (:id vs)
-                     :identifier (:identifier vs)
-                     :version (:version vs)
-                     :date    (str/replace (or (:date vs) "") #"-" "")
-                     :content (json/generate vs)})
+  (let [rows (map (fn [{:keys [id identifier version date] :as vs}]
+                    (let [fixed-date (str/replace (or date "") #"T.+$" "")]
+                      {:id id
+                       :identifier identifier
+                       :version version
+                       :date (if (not (str/blank? fixed-date))
+                               (tc/to-sql-time (tf/parse date-formatter fixed-date))
+                               nil)
+                       :content (pg-json vs)}))
                   valuesets)]
 
     (jdbc/with-db-transaction [trans db]
-      (db/e! trans "DELETE FROM fhir_value_sets")
-
       (doseq [row rows]
         (db/i! trans "fhir_value_sets" row)))
 
