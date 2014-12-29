@@ -161,8 +161,9 @@
 (defmethod from-jdbc clojure.lang.PersistentHashMap [m] (map-map m from-jdbc))
 
 (defmethod from-jdbc org.postgresql.util.PGobject [v]
-  (if (= (.getType v) "json")
-    (json/parse (.toString v))
+  (condp = (.getType v)
+    "json" (json/parse (.toString v))
+    "jsonb" (json/parse (.toString v))
     (.toString v)))
 
 (defmethod from-jdbc org.postgresql.jdbc4.Jdbc4Array [v]
