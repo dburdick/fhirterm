@@ -31,6 +31,7 @@
 
 (defn- prepare-db [db]
   (jdbc/with-db-transaction [trans db]
+    (db/e! (format "DROP TABLE IF EXISTS %s" (name loinc-table)))
     (db/e! trans
            (apply jdbc/create-table-ddl loinc-table loinc-columns))
 

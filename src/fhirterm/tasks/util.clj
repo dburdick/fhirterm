@@ -8,7 +8,7 @@
   (System/exit status))
 
 (defn make-path [& args]
-  (apply str/join "/" args))
+  (str/join "/" args))
 
 (defn mk-tmp-dir!
   "Creates a unique temporary directory on the filesystem. Typically in /tmp on
