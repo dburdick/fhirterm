@@ -1,66 +1,67 @@
 (ns fhirterm.naming-system.snomed
   (:require [honeysql.helpers :as sql]
             [clojure.string :as str]
-            [clojure.set :as set]
-            [clojure.data.int-map :as int-map]
-            [fhirterm.db :as db]))
+            [fhirterm.db :as db]
+            [clojure.string :as str]
+            [honeysql.core :as sqlc]))
 
 (def snomed-uri "http://snomed.info/sct")
-(def concepts (atom nil))
 
-;; "Elapsed time: 7317.066 msecs"
-(defn warmup [db]
-  (swap! concepts
-         (fn [c]
-           (let [r (db/q db (-> (sql/select [:c.id :code] [:d.term :display]
-                                            [:ad.ancestors :ancestors]
-                                            [:ad.descendants :descendants])
-                                (sql/from [:snomed_concepts :c])
-                                (sql/join [:snomed_descriptions :d]
-                                          [:and [:= :d.concept_id :c.id]
-                                           [:= :d.active 1]
-                                           [:= :d.type_id 900000000000003001]]
+;; body structure: 91723000
+;; other stuff:  404684003
 
-                                          [:snomed_ancestors_descendants :ad]
-                                          [:= :ad.concept_id :c.id])
+(defn lookup-code [db params]
+  (let [found-concept (db/q-one db (-> (sql/select [:sd.term :display]
+                                         [:sd.concept_id :code])
+                                       (sql/from [:snomed_descriptions_no_history :sd])
+                                       (sql/where [:= :sd.concept_id
+                                                   (java.lang.Long. (:code params))])
+                                       (sql/limit 1)))]
+    (when found-concept
+      {:name "SNOMED"
+       :version "to.do"
+       :abstract "TODO"
+       :display (:display found-concept)
+       :designation [{:value (:display found-concept)}]})))
 
-                                (sql/where [:= :c.active 1])
-                                (sql/group :c.id)))]
+(defn- filter-to-query [{:keys [op value property] :as f}]
+  (when-not (and (= op "is-a") (= property "concept"))
+    (throw (IllegalArgumentException. (str "Don't know how to expand filter "
+                                           (pr-str f)))))
 
-             (reduce (fn [acc {:keys [code display ancestors descendants]}]
-                       (assoc acc code
-                              {:data {:search-vector (str/lower-case display)
-                                      :system snomed-uri
-                                      :code code
-                                      :display display
-                                      :version "to.do"}
-                               ;;:ancestors (map long (str/split ancestors #"\s"))
-                               ;;:descendants (map long (str/split descendants #"\s"))
-                               }))
-                     (int-map/int-map) r))))
+  (-> (sql/select [:%unnest.descendants :concept_id])
+      (sql/from [:snomed_ancestors_descendants :sad])
+      (sql/where [:= :sad.concept_id (java.lang.Long. value)])
+      (sqlc/format)
+      (first)))
 
-  nil)
+(defn- combine-queries [op qs]
+  (let [qs (remove (fn [x] (or (nil? x) (str/blank? x))) qs)]
+    (if (> 2 (count qs))
+      (first qs)
+      (str/join (str " " (str/upper-case (name op))  " ")
+                (map (fn [q] (str "(" q ")")) qs)))))
 
-;; body structure: 91723000 - 60ms / 28270
-;; other stuff:  404684003 - 560ms / 131678
+(defn- filters-to-query [fs]
+  (combine-queries :intersect
+                   (map (fn [f]
+                          (combine-queries :union
+                                           (map filter-to-query f)))
+                        fs)))
 
-(defn lookup-code [db params])
+(defn- row-to-coding [c]
+  (merge c {:system snomed-uri
+            :abstract false
+            :version "to.do"}))
 
-(defn- filter-result [db [{:keys [property op value] :as filter}]]
-  (if-not (and (= op "is-a") (= property "concept"))
-    (throw (RuntimeException. (format "Don't know how to filter SNOMED with %s"
-                                      (pr-str filter)))))
-
-  ;; (if (or (nil? @is-a-relations) (nil? @concepts))
-  ;;   (warmup db))
-  )
-
-;; todo: support excludes
 (defn filter-codes [db {:keys [include exclude :as filters]}]
-  (let [included-set (time (reduce int-map/union
-                                   (map (partial filter-result db) include)))
-        included-codings (map (fn [concept] (get @concepts concept))
-                              included-set)]
+  (let [included-query (filters-to-query include)
+        excluded-query (filters-to-query exclude)
+        concept-ids-query (combine-queries :except [included-query excluded-query])]
 
-    (println "!!! Expanded codings count:" (count included-codings))
-    included-codings))
+    (map row-to-coding
+         (db/q (-> (sql/select [:t.concept_id :code]
+                     [:sd.term :display])
+                   (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
+                   (sql/join [:snomed_descriptions_no_history :sd]
+                             [:= :sd.concept_id :t.concept_id]))))))

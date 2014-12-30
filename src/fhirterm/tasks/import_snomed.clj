@@ -29,6 +29,10 @@
                          [:term "TEXT"]
                          [:case_significance_id "BIGINT"]]
 
+   :snomed_descriptions_no_history [[:concept_id "BIGINT PRIMARY KEY"]
+                                    [:effective_time "INTEGER"]
+                                    [:term "TEXT"]]
+
    :snomed_relations [[:id "BIGINT"]
                       [:effective_time "INTEGER"]
                       [:active "BOOLEAN"]
@@ -151,12 +155,23 @@ LANGUAGE sql IMMUTABLE"])
            SELECT DISTINCT(destination_id) AS id FROM snomed_is_a_relations) t")
   (println "Finished prewalking SNOMED graph"))
 
+(defn- fill-descriptions-no-history-table [db]
+  (db/e! "INSERT INTO snomed_descriptions_no_history (concept_id, effective_time, descendants)
+          SELECT t.concept_id, t.effective_time, t.term FROM (
+            SELECT concept_id, effective_time, term,
+                   rank() OVER (partition by concept_id order by effective_time DESC)
+                   AS r
+              FROM snomed_descriptions
+             WHERE active = TRUE AND type_id = 900000000000003001
+          ) t WHERE t.r = 1"))
+
 (defn perform* [db zip-file]
   (unzip-file zip-file
               (fn [tmp-path]
                 (prepare-db db)
                 (load-snomed-csv db tmp-path)
-                (prewalk-is-a-relations db))))
+                (prewalk-is-a-relations db)
+                (fill-descriptions-no-history-table db))))
 
 (defn perform [db args]
   (let [zip-file (first args)]
