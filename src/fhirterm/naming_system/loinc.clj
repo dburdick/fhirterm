@@ -53,7 +53,7 @@
    :version "to.do"
    :code (:loinc_num row)
    :display (:shortname row)
-   :search-vector (str/lower-case (:shortname row))})
+   :search-vector (str/lower-case (or (:shortname row) ""))})
 
 (defn- combine-preds [inc-pred excl-pred]
   (cond
