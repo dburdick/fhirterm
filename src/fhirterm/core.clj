@@ -35,6 +35,10 @@
     :parse-fn str
     :validate [#(not (clojure.string/blank? %)) "Must be specified"]]])
 
+(defn- exit [status msg]
+  (println msg)
+  (System/exit status))
+
 (defn error-msg [errors]
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
@@ -55,10 +59,6 @@
                        (.getMessage e)))
 
       nil)))
-
-(defn- exit [status msg]
-  (println msg)
-  (System/exit status))
 
 (defn- perform-run [cfg]
   (system/start cfg))

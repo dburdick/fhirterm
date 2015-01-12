@@ -3,6 +3,10 @@
             [clojure.string :as str]
             [clojure.java.shell :as sh]))
 
+(defn- exit [status msg]
+  (println msg)
+  (System/exit status))
+
 (defn make-path [& args]
   (str/join "/" args))
 
@@ -46,4 +50,5 @@
             (f tmp-path))))
 
       (finally
-        (println "Temp directory removed: " (pr-str (sh/sh "rm" "-rf" tmp-path)))))))
+        (sh/sh "rm" "-rf" tmp-path)
+        (println "Temporary directory removed")))))
