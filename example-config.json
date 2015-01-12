@@ -1,0 +1,13 @@
+{
+  "env": "development",
+  "http": {
+    "port": 7654
+  },
+  "db": {
+    "classname": "org.postgresql.Driver",
+    "subprotocol": "postgresql",
+    "user": "fhirterm",
+    "password": "fhirterm",
+    "subname": "//127.0.0.1:5432/fhirterm"
+  }
+}

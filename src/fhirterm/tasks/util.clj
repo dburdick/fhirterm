@@ -3,10 +3,6 @@
             [clojure.string :as str]
             [clojure.java.shell :as sh]))
 
-(defn exit [status msg]
-  (println msg)
-  (System/exit status))
-
 (defn make-path [& args]
   (str/join "/" args))
 

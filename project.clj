@@ -21,4 +21,4 @@
   :profiles {:dev {:source-paths ["dev"]}
              :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
 
-  :aliases {"task" ["run" "-m" "fhirterm.tasks.core"]})
+  :main fhirterm.core)

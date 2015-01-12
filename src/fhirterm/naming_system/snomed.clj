@@ -7,9 +7,6 @@
 
 (def snomed-uri "http://snomed.info/sct")
 
-;; body structure: 91723000
-;; other stuff:  404684003
-
 (defn lookup-code [db params]
   (let [found-concept (db/q-one db (-> (sql/select [:sd.term :display]
                                          [:sd.concept_id :code])
