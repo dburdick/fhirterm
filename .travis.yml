@@ -7,8 +7,8 @@ before_script:
   - pg_lsclusters
   - ls -lah /var/ramfs
   - sudo service postgresql stop
-  - initdb -D /tmp/pg93
-  - pg_ctl start -D /tmp/pg93
+  - sudo su postgres -c 'initdb -D /tmp/pg93'
+  - sudo su postgres -c 'pg_ctl start -D /tmp/pg93'
   - cp example-config.json test/config.json
   - psql -c 'create database fhirterm;' -U postgres
   - psql -c "create role fhirterm with superuser login encrypted password 'fhirterm';" -U postgres
