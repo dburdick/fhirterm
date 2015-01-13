@@ -35,7 +35,7 @@
                        :date (if (not (str/blank? fixed-date))
                                (tf/parse date-formatter fixed-date)
                                nil)
-                       :content (db/pg-obj :jsonb vs)}))
+                       :content (db/pg-obj :json vs)}))
                   valuesets)]
 
     (jdbc/with-db-transaction [trans db]
