@@ -5,7 +5,7 @@ addons:
 before_script:
   - df -h
   - pg_lsclusters
-  - ls -lah /var/lib/postgresql
+  - ls -lah /var/ramfs
   - cp example-config.json test/config.json
   - psql -c 'create database fhirterm;' -U postgres
   - psql -c "create role fhirterm with superuser login encrypted password 'fhirterm';" -U postgres
