@@ -7,8 +7,8 @@
             [fhirterm.tasks.import-snomed :as import-snomed]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
-(def snomed-zip-path "data/SnomedCT_Release_INT_20140731.zip")
-(def loinc-zip-path "data/LOINC_248_Text.zip")
+(def snomed-zip-path "data/snomed.zip")
+(def loinc-zip-path "data/loinc.zip")
 
 (deftest ^:task import-vs-test
   (import-vs/perform db/*db* [])
