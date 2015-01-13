@@ -7,7 +7,8 @@ before_install:
 
 before_script:
   - pg_lsclusters
-  - sudo su postgres -c "echo 'host all all 127.0.0.1/32 md5' > /etc/postgresql/9.4/main/pg_hba.conf"
+  - sudo su postgres -c "echo 'host all all 127.0.0.1/32 md5' >> /etc/postgresql/9.4/main/pg_hba.conf"
+  - sudo service postgresql reload
   - cp example-config.json test/config.json
   - psql -c 'create database fhirterm;' -U postgres
   - psql -c "create role fhirterm with superuser login encrypted password 'fhirterm';" -U postgres
