@@ -10,8 +10,8 @@ before_script:
   - sudo su postgres -c "echo 'host all all 127.0.0.1/32 md5' >> /etc/postgresql/9.4/main/pg_hba.conf"
   - sudo service postgresql reload
   - cp example-config.json test/config.json
-  - psql -c 'create database fhirterm;' -U postgres
-  - psql -c "create role fhirterm with superuser login encrypted password 'fhirterm';" -U postgres
+  - sudo su postgres -c "psql -c 'create database fhirterm;'"
+  - sudo su postgres -c "psql -c \"create role fhirterm with superuser login encrypted password 'fhirterm';\""
   - wget -O data/loinc.zip https://www.dropbox.com/s/u4qsfc7ciiaqfqa/LOINC_248_Text.zip?dl=1
   - wget -O data/snomed.zip https://www.dropbox.com/s/rr5bho3npfnviji/SnomedCT_Release_INT_20140731_only_data.zip?dl=1
 
