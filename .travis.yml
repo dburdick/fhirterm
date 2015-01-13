@@ -6,6 +6,8 @@ before_script:
   - cp example-config.json test/config.json
   - psql -c 'create database fhirterm;' -U postgres
   - psql -c "create role fhirterm with superuser login encrypted password 'fhirterm';" -U postgres
+  - wget -O data/loinc.zip https://www.dropbox.com/s/u4qsfc7ciiaqfqa/LOINC_248_Text.zip?dl=1
+  - wget -O data/snomed.zip https://www.dropbox.com/s/vn4eaqecjeei14k/SnomedCT_Release_INT_20140731.zip?dl=1
 
 script:
   - lein test :tasks
