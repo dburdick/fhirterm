@@ -11,32 +11,20 @@
 (def loinc-zip-path "data/LOINC_248_Text.zip")
 
 (deftest ^:task import-vs-test
-  (let [output (with-out-str (import-vs/perform db/*db* []))
-        checks [#"HTTP status: 200"
-                #"Inserted \d+ ValueSets"]]
-    (println output)
+  (import-vs/perform db/*db* [])
 
-    (doseq [c checks]
-      (is (re-find c output)))))
+  (is (= (db/q-val "SELECT COUNT(*) FROM fhir_value_sets") 320)))
 
 (deftest ^:task import-snomed-test
-  (let [output (with-out-str (import-snomed/perform db/*db* [snomed-zip-path]))
-        checks [#"Created SNOMED tables"
-                #"Finished importing SNOMED"
-                #"Temporary directory removed"]]
-    (println output)
+  (import-snomed/perform db/*db* [snomed-zip-path])
 
-    (doseq [c checks]
-      (is (re-find c output)))))
+  (is (> (db/q-val "SELECT COUNT(*) FROM snomed_descriptions") 0))
+  (is (> (db/q-val "SELECT COUNT(*) FROM snomed_ancestors_descendants") 0)))
 
 (deftest ^:task import-loinc-test
-  (let [output (with-out-str (import-loinc/perform db/*db* [loinc-zip-path]))
-        checks [#"Done, imported \d+ LOINC records"
-                #"Temporary directory removed"]]
-    (println output)
+  (import-loinc/perform db/*db* [loinc-zip-path])
 
-    (doseq [c checks]
-      (is (re-find c output)))))
+  (is (> (db/q-val "SELECT COUNT(*) FROM loinc_loincs") 0)))
 
 ;; Generally, we need to run task tests in specific order
 ;; so we define this hook fn to specify order here
