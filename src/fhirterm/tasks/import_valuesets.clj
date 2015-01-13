@@ -16,7 +16,7 @@
    [:identifier "varchar"]
    [:version "varchar"]
    [:date "date"]
-   [:content "jsonb"]])
+   [:content "json"]])
 
 (defn- create-value-sets-table [db]
   (jdbc/with-db-transaction [trans db]
