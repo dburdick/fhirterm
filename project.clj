@@ -21,8 +21,9 @@
   :profiles {:dev {:source-paths ["dev"]}
              :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
 
-  :test-selectors {:default (complement :integration)
+  :test-selectors {:default (fn [m] (not (and (:integration m) (:tasks m))))
                    :integration :integration
+                   :tasks :task
                    :all (constantly true)}
 
   :main fhirterm.core)

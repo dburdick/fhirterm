@@ -140,9 +140,7 @@ LANGUAGE sql IMMUTABLE"])
     (println "Copying \"is-a\" relations into separate table...")
     (db/e! "INSERT INTO snomed_is_a_relations (id, source_id, destination_id)
             SELECT id, source_id, destination_id FROM snomed_relations
-            WHERE type_id = 116680003 AND active = TRUE")
-
-    (println "Finished importing SNOMED")))
+            WHERE type_id = 116680003 AND active = TRUE")))
 
 (defn- prewalk-is-a-relations [db]
   (println "Prewalking SNOMED graph (may take some time)")
@@ -156,7 +154,9 @@ LANGUAGE sql IMMUTABLE"])
   (println "Finished prewalking SNOMED graph"))
 
 (defn- fill-descriptions-no-history-table [db]
-  (db/e! "INSERT INTO snomed_descriptions_no_history (concept_id, effective_time, descendants)
+  (println "Deleting historical descriptions")
+
+  (db/e! "INSERT INTO snomed_descriptions_no_history (concept_id, effective_time, term)
           SELECT t.concept_id, t.effective_time, t.term FROM (
             SELECT concept_id, effective_time, term,
                    rank() OVER (partition by concept_id order by effective_time DESC)
@@ -171,7 +171,8 @@ LANGUAGE sql IMMUTABLE"])
                 (prepare-db db)
                 (load-snomed-csv db tmp-path)
                 (prewalk-is-a-relations db)
-                (fill-descriptions-no-history-table db))))
+                (fill-descriptions-no-history-table db)
+                (println "Finished importing SNOMED"))))
 
 (defn perform [db args]
   (let [zip-file (first args)]

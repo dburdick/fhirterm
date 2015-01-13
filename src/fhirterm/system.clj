@@ -47,6 +47,9 @@
                       (make-system config headless?)
                       system))))
 
+(defn start-headless [config]
+  (start config true))
+
 (defn stop []
   (alter-var-root #'*system*
                   (fn [{server :server :as system}]

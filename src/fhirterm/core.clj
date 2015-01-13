@@ -47,7 +47,7 @@
   (system/start cfg))
 
 (defn- perform-task [cfg [task-name & args]]
-  (let [syst (system/start cfg true)
+  (let [syst (system/start-headless cfg)
         task-fn (get task-to-namespace-map task-name)]
 
     (when (not task-fn)

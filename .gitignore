@@ -7,5 +7,5 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
-/db/fhirterm.sqlite3
 /test/config.json
+/data/*.zip

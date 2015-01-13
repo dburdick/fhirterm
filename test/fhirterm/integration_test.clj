@@ -38,7 +38,7 @@
 (defn find-coding [codings code]
   (first (filter (fn [c] (= (:code c) code)) codings)))
 
-(deftest ^:integration expansion-of-vs-with-enumerated-loinc-codes
+(deftest ^:integration expansion-of-vs-with-enumerated-loinc-codes-test
   (let [result (get-expansion (expand-vs "lipid-ldl-codes"))]
 
     (is (find-coding result "13457-7")
@@ -50,11 +50,11 @@
     (is (= (count result) 2)
         "two codings in expansion")))
 
-(deftest ^:integration expansion-of-vs-with-entire-loinc-included
+(deftest ^:integration expansion-of-vs-with-entire-loinc-included-test
   (let [result (get-expansion (expand-vs "valueset-observation-codes"))]
     (is (= (count result) 73889))))
 
-(deftest ^:integration expansion-of-vs-with-loinc-filtered-by-order-obs
+(deftest ^:integration expansion-of-vs-with-loinc-filtered-by-order-obs-test
   (let [result (get-expansion (expand-vs "valueset-diagnostic-requests"))]
 
     (is (find-coding result "1007-4"))
