@@ -1,6 +1,6 @@
 language: clojure
 before_install:
-  - sudo service postgres stop
+  - sudo service postgresql stop
   - sudo apt-get update
   - sudo apt-get install postgresql-client-9.4 postgresql-9.4 postgresql-contrib-9.4
 
