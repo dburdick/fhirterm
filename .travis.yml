@@ -1,12 +1,12 @@
 language: clojure
-addons:
-  postgresql: "9.3"
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install postgresql-client postgresql-server postgresql-contrib
 
 before_script:
   - df -h
   - pg_lsclusters
   - ls -lah /var/ramfs
-  - sudo service postgresql stop
   - sudo su postgres -c '/usr/lib/postgresql/9.3/bin/initdb -D /tmp/pg93'
   - cat /tmp/pg93/pg_hba.conf
   - sudo su postgres -c '/usr/lib/postgresql/9.3/bin/pg_ctl start -w -D /tmp/pg93'
