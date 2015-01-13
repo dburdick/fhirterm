@@ -14,6 +14,7 @@
   (let [output (with-out-str (import-vs/perform db/*db* []))
         checks [#"HTTP status: 200"
                 #"Inserted \d+ ValueSets"]]
+    (println output)
 
     (doseq [c checks]
       (is (re-find c output)))))
@@ -23,6 +24,7 @@
         checks [#"Created SNOMED tables"
                 #"Finished importing SNOMED"
                 #"Temporary directory removed"]]
+    (println output)
 
     (doseq [c checks]
       (is (re-find c output)))))
@@ -31,6 +33,7 @@
   (let [output (with-out-str (import-loinc/perform db/*db* [loinc-zip-path]))
         checks [#"Done, imported \d+ LOINC records"
                 #"Temporary directory removed"]]
+    (println output)
 
     (doseq [c checks]
       (is (re-find c output)))))
