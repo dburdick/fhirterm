@@ -43,23 +43,6 @@
   (str "The following errors occurred while parsing your command:\n\n"
        (string/join \newline errors)))
 
-(defn- read-config [path]
-  (try
-    (json/parse (slurp path))
-
-    (catch java.io.FileNotFoundException e
-      (println (format "Could not read config file: %s"
-                       (.getMessage e)))
-
-      nil)
-
-    (catch com.fasterxml.jackson.core.JsonParseException e
-      (println (format "Could not parse config file %s: %s"
-                       path
-                       (.getMessage e)))
-
-      nil)))
-
 (defn- perform-run [cfg]
   (system/start cfg))
 
@@ -77,7 +60,7 @@
   (let [{:keys [options arguments errors summary]}
         (parse-opts args cli-options)
 
-        config (read-config (:config options))
+        config (system/read-config (:config options))
         action (first arguments)]
 
     (when (empty? config)

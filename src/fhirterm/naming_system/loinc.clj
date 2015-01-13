@@ -39,7 +39,7 @@
       (throw (IllegalArgumentException. (format "Unknown filtering op: %s" (:op f)))))))
 
 (defn- filters-to-sql-cond [filters]
-  (let [predicate (if (empty? filters)
+  (let [predicate (if (or (nil? filters) (empty? (flatten filters)))
                     nil
                     (into [:or]
                           (map (fn [fs]
@@ -57,6 +57,7 @@
 
 (defn- combine-preds [inc-pred excl-pred]
   (cond
+   (and (empty? (flatten inc-pred)) (empty? (flatten excl-pred))) nil
    (and inc-pred excl-pred) [:and inc-pred [:not excl-pred]]
    (and inc-pred (not excl-pred)) inc-pred
    (and (not inc-pred) excl-pred) [:not excl-pred]

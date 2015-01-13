@@ -1,10 +1,14 @@
 (ns fhirterm.system
   (:require [fhirterm.server :as server]
+            [fhirterm.json :as json]
             [fhirterm.db :as db]))
 
 (def ^:dynamic *system* nil)
 
 (defn- make-system [{env :env :as config} headless?]
+  (when (empty? config)
+    (throw (IllegalArgumentException. "nil or empty config passed to system/start")))
+
   (when (not (contains? #{:development :production} (keyword env)))
     (throw (IllegalArgumentException. (format "Invalid app environment: %s"
                                               env))))
@@ -18,6 +22,23 @@
 
 (defn development? []
   (= (:env *system*) :development))
+
+(defn read-config [path]
+  (try
+    (json/parse (slurp path))
+
+    (catch java.io.FileNotFoundException e
+      (println (format "Could not read config file: %s"
+                       (.getMessage e)))
+
+      nil)
+
+    (catch com.fasterxml.jackson.core.JsonParseException e
+      (println (format "Could not parse config file %s: %s"
+                       path
+                       (.getMessage e)))
+
+      nil)))
 
 (defn start [config & [headless?]]
   (alter-var-root #'*system*
