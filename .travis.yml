@@ -6,6 +6,7 @@ before_script:
   - df -h
   - pg_lsclusters
   - ls -lah /var/ramfs
+  - whereis initdb
   - sudo service postgresql stop
   - sudo su postgres -c 'initdb -D /tmp/pg93'
   - sudo su postgres -c 'pg_ctl start -D /tmp/pg93'
