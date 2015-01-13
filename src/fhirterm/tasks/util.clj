@@ -34,7 +34,7 @@
                     file-name-pattern))
 
     (when (not (.canRead (io/file zip-file)))
-      (exit (format "File %s is not readable!" zip-file) 1))))
+      (exit 1 (format "File %s is not readable!" zip-file)))))
 
 (defn unzip-file [zip-path f]
   (let [tmp-path (.getPath (mk-tmp-dir!))]
