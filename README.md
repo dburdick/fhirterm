@@ -2,8 +2,14 @@
 
 # fhirterm
 
-A Clojure implementation of
-[FHIR Terminology Server](http://www.hl7.org/implement/standards/FHIR-Develop/terminology-service.html).
+Standalone implementation of
+[FHIR Terminology Service](http://www.hl7.org/implement/standards/FHIR-Develop/terminology-service.html).
+
+Powered by [Health Samurai](http://healthsamurai.github.io/)
+
+Sponsored by:
+
+![choice-hs.com](http://choice-hs.com/Images/Shared/Choice-HSLogo.png)
 
 ## License
 
