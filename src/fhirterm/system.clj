@@ -41,6 +41,7 @@
       nil)))
 
 (defn start [config & [headless?]]
+  (stop)
   (alter-var-root #'*system*
                   (fn [system]
                     (if (not system)
@@ -54,4 +55,6 @@
   (alter-var-root #'*system*
                   (fn [{server :server :as system}]
                     (when server
-                      (server/stop server)))))
+                      (server/stop server))
+
+                    nil)))

@@ -61,3 +61,29 @@
     (is (find-coding result "44241-8"))
 
     (is (= (count result) 38375))))
+
+(deftest ^:integration expansion-of-snomed-vs-test
+  (let [result (get-expansion (expand-vs "valueset-route-codes"))]
+
+    (is (find-coding result 31638007))
+    (is (find-coding result 445755006))
+
+    (is (= (count result) 169))))
+
+(deftest ^:integration expansion-of-explicitely-defined-vs-test
+  (let [result (get-expansion (expand-vs "valueset-practitioner-specialty"))]
+
+    (is (find-coding result "dietary"))
+    (is (find-coding result "cardio"))
+
+    (is (= (count result) 5))))
+
+(deftest ^:integration expansion-of-snomed-vs-composed-from-two-lookups-test
+  (let [result (get-expansion (expand-vs "valueset-daf-problem"))]
+
+    (is (find-coding result 162005007))
+    (is (find-coding result 308698004))
+    (is (find-coding result 163032006))
+    (is (find-coding result 164006007))
+
+    (is (= (count result) 4082))))
