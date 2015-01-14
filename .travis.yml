@@ -1,4 +1,5 @@
 language: clojure
+
 before_install:
   - sudo service postgresql stop
   - sudo apt-get update
