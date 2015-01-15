@@ -1,7 +1,7 @@
 {
   "env": "production",
   "http": {
-    "port": 80
+    "port": 7654
   },
   "db": {
     "classname": "org.postgresql.Driver",
