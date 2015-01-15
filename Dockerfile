@@ -1,8 +1,8 @@
 FROM ubuntu:14.10
 MAINTAINER Mikhail Lapshin <mikhail.a.lapshin@gmail.com>
 
-RUN apt-get -qq update && apt-get -qqy install openjdk-8-jre-headless curl
-RUN apt-get --reinstall install ca-certificates-java
+RUN apt-get -qq update && apt-get -qqy install openjdk-8-jre-headless curl ca-certificates-java
+RUN sudo /var/lib/dpkg/info/ca-certificates-java.postinst configure
 RUN useradd -d /home/fhir -m -s /bin/bash fhir && echo "fhir:fhir"|chpasswd && adduser fhir sudo
 RUN echo 'fhir ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
