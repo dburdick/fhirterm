@@ -11,6 +11,7 @@ RUN cd /home/fhir && mkdir -p /home/fhir/bin && curl https://raw.githubuserconte
 ENV PATH /home/fhir/bin:$PATH
 
 COPY . /home/fhir/fhirterm
+RUN sudo chown fhir:fhir /home/fhir/fhirterm
 
 EXPOSE 80
 
