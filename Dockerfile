@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:14.10
 MAINTAINER Mikhail Lapshin <mikhail.a.lapshin@gmail.com>
 
 RUN apt-get -qq update && apt-get -qqy install openjdk-8-jdk
