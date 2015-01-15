@@ -2,6 +2,7 @@
   (:require [fhirterm.server :as server]
             [fhirterm.json :as json]
             [fhirterm.db :as db]
+            [clojure.string :as str]
             [taoensso.timbre :as timbre]))
 
 (timbre/refer-timbre)
@@ -18,7 +19,9 @@
 
   (timbre/set-config! [:appenders :spit :enabled?] true)
   (timbre/set-config! [:shared-appender-config :spit-filename] (:file log))
-  (timbre/set-level! (keyword (:level log)))
+  (timbre/set-level! (keyword (str/lower-case (or (System/getenv "LOG_LEVEL")
+                                                  (:level log)
+                                                  "info"))))
 
   (debug "Log initialized")
 

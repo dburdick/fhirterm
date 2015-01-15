@@ -17,5 +17,5 @@ before_script:
   - wget -O data/snomed.zip https://www.dropbox.com/s/rr5bho3npfnviji/SnomedCT_Release_INT_20140731_only_data.zip?dl=1
 
 script:
-  - lein test :tasks
+  - LOG_LEVEL=info lein test :tasks
   - lein test :integration
