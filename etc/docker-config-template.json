@@ -1,0 +1,17 @@
+{
+  "env": "production",
+  "http": {
+    "port": 80
+  },
+  "db": {
+    "classname": "org.postgresql.Driver",
+    "subprotocol": "postgresql",
+    "user": "DB_USER",
+    "password": "DB_PASSWORD",
+    "subname": "//DB_HOST:DB_PORT/DB_NAME"
+  },
+  "log": {
+    "file": "log/fhirterm.log",
+    "level": "debug"
+  }
+}

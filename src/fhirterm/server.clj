@@ -69,7 +69,7 @@
             "\nParams:" (pr-str (:params request)))
 
       (let [result (handler request)]
-        (info "Finished in" (time-delta start-ms) "ms")
+        (info "Finished in" (time-delta start-ms) "ms\n\n")
         result))))
 
 (defn wrap-with-operation-outcome-exception-handler [handler]
