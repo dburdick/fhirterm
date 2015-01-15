@@ -9,7 +9,11 @@
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]
             [fhirterm.fhir.value-set :as vs]
+            [taoensso.timbre :as timbre]
+            [clojure.string :as str]
             [org.httpkit.server :as http-kit]))
+
+(timbre/refer-timbre)
 
 (defn respond-with [status obj]
   (let [json (if (string? obj) (json/parse obj) obj)
@@ -56,7 +60,17 @@
 
 (defn wrap-with-benchmark [handler]
   (fn [request]
-    (time (handler request))))
+    (let [start-ms (System/currentTimeMillis)
+          time-delta (fn [s] (- (System/currentTimeMillis) s))]
+
+      (info (str/upper-case (name (:request-method request)))
+            (str (:uri request) "?" (:query-string request))
+            "\nHeaders:" (pr-str (:headers request))
+            "\nParams:" (pr-str (:params request)))
+
+      (let [result (handler request)]
+        (info "Finished in" (time-delta start-ms) "ms")
+        result))))
 
 (defn wrap-with-operation-outcome-exception-handler [handler]
   (fn [request]
@@ -75,16 +89,19 @@
 
 (defn- make-handler [env db]
   (-> #(app %)
+      (wrap-with-benchmark)
       (ring-kw-params/wrap-keyword-params)
       (ring-params/wrap-params)
       (wrap-with-exception-handler env)
-      (wrap-with-benchmark)
       (assoc-into-request-mw {:db db
                               :env env})))
 
 (defn start [{env :env :as config} db]
-  (http-kit/run-server (make-handler env db)
-                       {:port (get-in config [:http :port])}))
+  (let [port (get-in config [:http :port])]
+    (info (format "Started fhirterm server on http://localhost:%d" port))
+
+    (http-kit/run-server (make-handler env db)
+                         {:port port})))
 
 (defn stop [server]
   (when server (server)))

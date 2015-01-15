@@ -76,6 +76,8 @@
 
 (defn i! [& args]
   (let [[db [tbl & args]] (extract-db-from-args args)]
+    (debug "SQL INSERT:" tbl args)
+
     (cond
      ;; first arg is a map, so each arg is a map
      (map? (first args))
@@ -85,7 +87,8 @@
      ;; first arg is vector of columns,
      ;; and rest of args is vectors of values
      (vector? (first args))
-     (apply jdbc/insert! db tbl (first args) (map to-jdbc (rest args)))
+     (report-actual-sql-error
+      (apply jdbc/insert! db tbl (first args) (map to-jdbc (rest args))))
 
      :else
      (throw (IllegalArgumentException. "Incorrect arguments of db/i! fn")))))
