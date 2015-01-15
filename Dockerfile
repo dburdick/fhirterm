@@ -12,7 +12,7 @@ ENV PATH /home/fhir/bin:$PATH
 
 COPY . /home/fhir/fhirterm
 RUN sudo chown fhir:fhir /home/fhir/fhirterm
-RUN lein deps
+RUN cd /home/fhir/fhirterm && lein deps
 
 ENV DB_USER fhirterm
 ENV DB_PASSWORD fhirterm
