@@ -1,17 +1,27 @@
 (ns fhirterm.system
   (:require [fhirterm.server :as server]
             [fhirterm.json :as json]
-            [fhirterm.db :as db]))
+            [fhirterm.db :as db]
+            [taoensso.timbre :as timbre]))
+
+(timbre/refer-timbre)
 
 (def ^:dynamic *system* nil)
 
-(defn- make-system [{env :env :as config} headless?]
+(defn- make-system [{env :env log :log :as config} headless?]
   (when (empty? config)
     (throw (IllegalArgumentException. "nil or empty config passed to system/start")))
 
   (when (not (contains? #{:development :production} (keyword env)))
     (throw (IllegalArgumentException. (format "Invalid app environment: %s"
                                               env))))
+
+  (timbre/set-config! [:appenders :spit :enabled?] true)
+  (timbre/set-config! [:shared-appender-config :spit-filename] (:file log))
+  (timbre/set-level! (keyword (:level log)))
+
+  (debug "Log initialized")
+
   (let [db (db/start config)]
     {:server (if headless? nil (server/start config db))
      :db db
@@ -49,9 +59,9 @@
                     nil)))
 
 (defn start [config & [headless?]]
-  (stop)
   (alter-var-root #'*system*
                   (fn [system]
+                    (stop)
                     (if (not system)
                       (make-system config headless?)
                       system))))

@@ -16,6 +16,7 @@
                  [clj-time "0.8.0"]
                  [ring/ring-devel "1.3.1"]
                  [criterium "0.4.3"]
+                 [com.taoensso/timbre "3.3.1"]
                  [org.clojure/data.csv "0.1.2"]]
 
   :profiles {:dev {:source-paths ["dev"]}

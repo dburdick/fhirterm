@@ -6,12 +6,15 @@
             [clojure.string :as str]
             [clj-time.coerce :as tc]
             [fhirterm.json :as json]
+            [taoensso.timbre :as timbre]
             [honeysql.core :as honeysql])
   (:import (org.joda.time DateTime)
            (java.sql Timestamp)
            (java.util Date)
            (org.postgresql.jdbc4 Jdbc4Array)
            (org.postgresql.util PGobject)))
+
+(timbre/refer-timbre)
 
 (def ^:dynamic *db* nil)
 
@@ -52,6 +55,7 @@
                         (string? something) [something]
                         (vector? something) something
                         (map? something) (honeysql/format something))]
+
     ;; perform coercing on args
     (into [query] (map to-jdbc args))))
 
@@ -61,15 +65,14 @@
     [db sql-vector]))
 
 (defn q [& args]
-  (let [[db sql-vector] (db-and-query-from-args args)
-        result (report-actual-sql-error
-                (jdbc/query db sql-vector))]
-    (map from-jdbc result)))
+  (let [[db sql-vector] (db-and-query-from-args args)]
+    (debug "SQL:" sql-vector)
+    (map from-jdbc (report-actual-sql-error (jdbc/query db sql-vector)))))
 
 (defn e! [& args]
   (let [[db sql-vector] (db-and-query-from-args args)]
-    (report-actual-sql-error
-     (jdbc/execute! db sql-vector))))
+    (debug "SQL:" sql-vector)
+    (report-actual-sql-error (jdbc/execute! db sql-vector))))
 
 (defn i! [& args]
   (let [[db [tbl & args]] (extract-db-from-args args)]

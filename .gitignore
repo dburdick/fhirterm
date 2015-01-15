@@ -9,3 +9,4 @@ pom.xml.asc
 /.nrepl-port
 /test/config.json
 /data/*.zip
+/log/*.log
