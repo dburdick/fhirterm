@@ -1,4 +1,4 @@
-(ns fhirterm.tasks.import-valuesets
+(ns fhirterm.tasks.import-fhir
   (:require [fhirterm.db :as db]
             [org.httpkit.client :as http]
             [clojure.java.jdbc :as jdbc]

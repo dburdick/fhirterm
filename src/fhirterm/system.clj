@@ -2,6 +2,7 @@
   (:require [fhirterm.server :as server]
             [fhirterm.json :as json]
             [fhirterm.db :as db]
+            [fhirterm.fhir.client :as fhir-client]
             [clojure.string :as str]
             [taoensso.timbre :as timbre]))
 
@@ -28,6 +29,7 @@
   (let [db (db/start config)]
     {:server (if headless? nil (server/start config db))
      :db db
+     :fhir-client (fhir-client/start config)
      :env (keyword env)}))
 
 (defn production? []
@@ -65,6 +67,7 @@
   (alter-var-root #'*system*
                   (fn [system]
                     (stop)
+
                     (if (not system)
                       (make-system config headless?)
                       system))))

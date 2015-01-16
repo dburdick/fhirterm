@@ -14,7 +14,10 @@
           :password "fhirterm"
           :subname "//127.0.0.1:5432/fhirterm"}
    :log {:file "log/fhirterm.log"
-         :level "debug"}})
+         :level "debug"}
+
+   :fhir-client {:protocol "rest"
+                 :base_url "http://localhost:3000"}})
 
 (defn start []
   (system/start config))

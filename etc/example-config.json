@@ -13,5 +13,9 @@
   "log": {
     "file": "log/fhirterm.log",
     "level": "debug"
+  },
+  "fhir-client": {
+    "protocol": "rest",
+    "base_url": "http://localhost:3000/"
   }
 }

@@ -4,7 +4,7 @@
             [clojure.string :as string]
             [fhirterm.json :as json]
             [fhirterm.system :as system]
-            [fhirterm.tasks.import-valuesets :as import-vs]
+            [fhirterm.tasks.import-fhir :as import-fhir]
             [fhirterm.tasks.import-snomed :as import-snomed]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
@@ -17,7 +17,7 @@
         options-summary
         ""
         "Actions:"
-        "  import-vs      Import FHIR ValueSets into database"
+        "  import-fhir    Import standard FHIR ValueSets and ConceptMaps into FHIR server"
         "  import-loinc   Import LOINC NS from ZIP distribution"
         "  import-snomed  Import SNOMEDCT NS from ZIP distribution"
         ""
@@ -25,7 +25,7 @@
        (string/join \newline)))
 
 (def task-to-namespace-map
-  {"import-vs" import-vs/perform
+  {"import-fhir" import-fhir/perform
    "import-loinc" import-loinc/perform
    "import-snomed" import-snomed/perform})
 
