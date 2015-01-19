@@ -12,9 +12,13 @@ before_script:
   - sudo service postgresql reload
   - cp etc/example-config.json test/config.json
   - sudo su postgres -c "psql -c 'create database fhirterm;'"
+  - sudo su postgres -c "psql -c 'create database fhirbase;'"
   - sudo su postgres -c "psql -c \"create role fhirterm with superuser login encrypted password 'fhirterm';\""
+  - sudo su postgres -c "psql -c \"create role fhirbase with superuser login encrypted password 'fhirbase';\""
   - wget -O data/loinc.zip https://www.dropbox.com/s/u4qsfc7ciiaqfqa/LOINC_248_Text.zip?dl=1
   - wget -O data/snomed.zip https://www.dropbox.com/s/rr5bho3npfnviji/SnomedCT_Release_INT_20140731_only_data.zip?dl=1
+  - wget -O /tmp/fhirbase.sql https://raw.githubusercontent.com/fhirbase/fhirbase/master/fhirbase--1.0.sql
+  - PGPASSWORD=fhirbase psql -U fhirbase -h localhost fhirbase < /tmp/fhirbase.sql
 
 script:
   - LOG_LEVEL=info lein test :tasks
