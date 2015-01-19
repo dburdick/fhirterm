@@ -42,3 +42,6 @@
 
 (defn resource-exists? [type id]
   (invoke 'resource-exists? type id))
+
+(defn get-description []
+  (invoke 'get-description))

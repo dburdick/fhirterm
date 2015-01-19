@@ -48,3 +48,6 @@
 (defn resource-exists? [{base-url :base-url} type id]
   (let [response (request :get (make-url base-url type id))]
     (= (:status response) 200)))
+
+(defn get-description [{base-url :base-url}]
+  (format "FHIR Server at %s" base-url))
