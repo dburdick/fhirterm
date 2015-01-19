@@ -1,24 +1,21 @@
 (ns fhirterm.fhir.value-set
-  (:require [fhirterm.db :as db]
-            [honeysql.helpers :as sql]
-            [fhirterm.json :as json]
+  (:require [fhirterm.json :as json]
             [fhirterm.util :as util]
             [fhirterm.naming-system.core :as naming-system]
             [clj-time.core :as time]
-            [clojure.set :as set]
             [clojure.string :as str]))
 
-(defn find-by-id [db id]
-  (let [result (db/q-one db (-> (sql/select :content)
-                                (sql/from :fhir_value_sets)
-                                (sql/where [:= :id id])))]
+(defn find-by-id [id]
+  (let [result (db/q-one (-> (sql/select :content)
+                             (sql/from :fhir_value_sets)
+                             (sql/where [:= :id id])))]
 
     (if result (:content result) nil)))
 
-(defn find-by-identifier [db identifier]
-  (let [result (db/q-one db (-> (sql/select :content)
-                                (sql/from :fhir_value_sets)
-                                (sql/where [:= :identifier identifier])))]
+(defn find-by-identifier [identifier]
+  (let [result (db/q-one (-> (sql/select :content)
+                             (sql/from :fhir_value_sets)
+                             (sql/where [:= :identifier identifier])))]
 
     (if result (json/parse (:content result)) nil)))
 
@@ -34,7 +31,7 @@
            (into regular-filters code-filter)))
        includes))
 
-(defn- expand-with-compose-include-and-exclude [expansion db vs]
+(defn- expand-with-compose-include-and-exclude [expansion vs]
   (let [includes-by-syst (group-by :system (get-in vs [:compose :include]))
         excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))
         filters-for-external-ns
@@ -47,10 +44,10 @@
                 {} (keys includes-by-syst))]
 
     (reduce (fn [res [ns filters]]
-              (into res (naming-system/filter-codes db ns filters)))
+              (into res (naming-system/filter-codes ns filters)))
             expansion filters-for-external-ns)))
 
-(defn- expand-with-define [expansion db {{:keys [system concept]} :define :as vs}]
+(defn- expand-with-define [expansion {{:keys [system concept]} :define :as vs}]
   (reduce (fn reduce-fn [result c]
             (let [result (conj result
                                {:code    (:code c)
@@ -77,24 +74,24 @@
       codings)))
 
 (declare expand*)
-(defn- expand-with-compose-import [expansion db vs]
+(defn- expand-with-compose-import [expansion vs]
   (let [imports (get-in vs [:compose :import])]
     (reduce (fn [result identifier]
-              (let [imported-vs (find-by-identifier db identifier)]
+              (let [imported-vs (find-by-identifier identifier)]
                 (if imported-vs
-                  (into result (expand* db imported-vs {}))
+                  (into result (expand* imported-vs {}))
                   result)))
             expansion imports)))
 
-(defn- expand* [db vs params]
+(defn- expand* [vs params]
   (-> []
-      (expand-with-define db vs)
-      (expand-with-compose-import db vs)
-      (expand-with-compose-include-and-exclude db vs)
+      (expand-with-define vs)
+      (expand-with-compose-import vs)
+      (expand-with-compose-include-and-exclude vs)
       (apply-expansion-filters params)))
 
-(defn expand [db vs params]
-  (let [result (expand* db vs params)]
+(defn expand [vs params]
+  (let [result (expand* vs params)]
     (assoc vs :expansion {:identifier (util/uuid)
                           :timestamp (time/now)
                           :contains (map (fn [x] (dissoc x :search-vector))

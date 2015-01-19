@@ -43,7 +43,7 @@
     (GET "/:id/$expand" {{id :id :as params} :params :as request}
       (let [vs (vs/find-by-id id)]
         (if vs
-          (respond-with 200 (vs/expand db vs params))
+          (respond-with 200 (vs/expand vs params))
           (respond-with-not-found (format "Could not find ValueSet with id = %s" id))))))
 
   (route/not-found (respond-with-not-found)))
