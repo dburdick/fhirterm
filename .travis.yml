@@ -9,7 +9,9 @@ before_install:
 before_script:
   - pwd
   - pg_lsclusters
+  - cat /etc/
   - sudo su postgres -c "echo 'host all all 127.0.0.1/32 md5' >> /etc/postgresql/9.4/main/pg_hba.conf"
+  - sudo su postgres -c "echo 'checkpoint_segments = 15' >> /etc/postgresql/9.4/main/postgresql.conf"
   - sudo service postgresql reload
   - cp etc/example-config.json test/config.json
   - sudo su postgres -c "psql -c 'create database fhirterm;'"
