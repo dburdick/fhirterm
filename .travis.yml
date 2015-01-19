@@ -7,7 +7,7 @@ before_install:
   - sudo apt-get install postgresql-client-9.4 postgresql-9.4 postgresql-contrib-9.4
 
   - sudo apt-get install software-properties-common
-  - sudo apt-add-repository ppa:brightbox/ruby-ng
+  - sudo apt-add-repository ppa:brightbox/ruby-ng -y
   - sudo apt-get update
   - sudo apt-get install ruby2.2
   - sudo gem2.2 install bundler --no-ri --no-rdoc
