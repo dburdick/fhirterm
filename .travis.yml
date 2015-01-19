@@ -12,6 +12,8 @@ before_install:
   - sudo apt-get install ruby2.2
   - sudo gem2.2 install bundler --no-ri --no-rdoc
 
+  - ssh -o StrictHostKeyChecking=no git@github.com
+
 before_script:
   - pwd
   - pg_lsclusters
