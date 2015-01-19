@@ -27,9 +27,13 @@
                                        {:url url :method method}
                                        params)
                                 identity)]
+    (if (:error response)
+      (do
+        (error (:error response) "FHIR request failed")
+        (throw (:error response)))
 
-    (debug "FHIR request finished in"
-           (- (System/currentTimeMillis) start-time) "ms")
+      (debug "FHIR request finished in"
+             (- (System/currentTimeMillis) start-time) "ms"))
 
     (update-in response [:body] json/parse)))
 
