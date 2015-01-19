@@ -26,7 +26,7 @@ before_script:
   - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/route-map-master fhirplace-master/lib/route-map
   - cd fhirplace-master
   - lein deps
-  - FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run &
+  - FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run > /dev/null &
   - until $(curl --output /dev/null --silent --head --fail http://localhost:3000); do printf '.'; sleep 5; done
   - cd /home/travis/build/fhirbase/fhirterm
 
