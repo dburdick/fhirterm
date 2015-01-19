@@ -7,6 +7,7 @@ before_install:
   - sudo apt-get install postgresql-client-9.4 postgresql-9.4 postgresql-contrib-9.4
 
 before_script:
+  - pwd
   - pg_lsclusters
   - sudo su postgres -c "echo 'host all all 127.0.0.1/32 md5' >> /etc/postgresql/9.4/main/pg_hba.conf"
   - sudo service postgresql reload
