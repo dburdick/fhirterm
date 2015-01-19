@@ -81,20 +81,19 @@
     (wrap-with-operation-outcome-exception-handler handler)
     (ring-stacktrace/wrap-stacktrace handler)))
 
-(defn- make-handler [env db]
+(defn- make-handler [env]
   (-> #(app %)
       (wrap-with-benchmark)
       (ring-kw-params/wrap-keyword-params)
       (ring-params/wrap-params)
       (wrap-with-exception-handler env)
-      (assoc-into-request-mw {:db db
-                              :env env})))
+      (assoc-into-request-mw {:env env})))
 
 (defn start [{env :env :as config} db]
   (let [port (get-in config [:http :port])]
     (info (format "Started fhirterm server on http://localhost:%d" port))
 
-    (http-kit/run-server (make-handler env db)
+    (http-kit/run-server (make-handler env)
                          {:port port})))
 
 (defn stop [server]
