@@ -5,6 +5,8 @@ before_install:
   - sudo apt-get update
   - sudo apt-get remove --purge postgresql-9.1 postgresql-9.2 postgresql-9.3
   - sudo apt-get install postgresql-client-9.4 postgresql-9.4 postgresql-contrib-9.4
+  - sudo apt-get install ruby2.0
+  - sudo gem install bundler --no-ri --no-rdoc
 
 before_script:
   - pwd
@@ -14,20 +16,24 @@ before_script:
   - sudo service postgresql reload
   - cp etc/example-config.json test/config.json
   - sudo su postgres -c "psql -c 'create database fhirterm;'"
-  - sudo su postgres -c "psql -c 'create database fhirbase;'"
+  # - sudo su postgres -c "psql -c 'create database fhirbase;'"
   - sudo su postgres -c "psql -c \"create role fhirterm with superuser login encrypted password 'fhirterm';\""
-  - sudo su postgres -c "psql -c \"create role fhirbase with superuser login encrypted password 'fhirbase';\""
+  # - sudo su postgres -c "psql -c \"create role fhirbase with superuser login encrypted password 'fhirbase';\""
   - wget -O data/loinc.zip https://www.dropbox.com/s/u4qsfc7ciiaqfqa/LOINC_248_Text.zip?dl=1
   - wget -O data/snomed.zip https://www.dropbox.com/s/rr5bho3npfnviji/SnomedCT_Release_INT_20140731_only_data.zip?dl=1
-  - wget -O /tmp/fhirbase.sql https://raw.githubusercontent.com/fhirbase/fhirbase/master/fhirbase--1.0.sql
-  - PGPASSWORD=fhirbase psql -U fhirbase -h localhost fhirbase < /tmp/fhirbase.sql
-  - wget -O /tmp/fhirplace-master.zip https://github.com/fhirbase/fhirplace/archive/master.zip
-  - wget -O /tmp/routemap-master.zip https://github.com/niquola/route-map/archive/master.zip
-  - cd .. && unzip /tmp/fhirplace-master.zip
-  - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/route-map-master fhirplace-master/lib/route-map
-  - cd fhirplace-master
-  - lein deps
-  - FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run > /dev/null &
+  # - wget -O /tmp/fhirbase.sql https://raw.githubusercontent.com/fhirbase/fhirbase/master/fhirbase--1.0.sql
+  # - PGPASSWORD=fhirbase psql -U fhirbase -h localhost fhirbase < /tmp/fhirbase.sql
+  # - wget -O /tmp/fhirplace-master.zip https://github.com/fhirbase/fhirplace/archive/master.zip
+  # - wget -O /tmp/routemap-master.zip https://github.com/niquola/route-map/archive/master.zip
+  # - cd .. && unzip /tmp/fhirplace-master.zip
+  # - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/route-map-master fhirplace-master/lib/route-map
+  # - cd fhirplace-master
+  # - lein deps
+  # - FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run > /dev/null &
+  - wget -O /tmp/fss.zip https://github.com/mlapshin/fhirterm-fss/archive/master.zip
+  - cd .. && unzip /tmp/fss.zip && cd fhirterm-fss
+  - sudo bundle install
+  - bundle exec rackup -p 3000
   - until $(curl --output /dev/null --silent --head --fail http://localhost:3000); do printf '.'; sleep 5; done
   - cd /home/travis/build/fhirbase/fhirterm
 

@@ -27,6 +27,7 @@
                                        {:url url :method method}
                                        params)
                                 identity)]
+
     (if (:error response)
       (do
         (error (:error response) "FHIR request failed")
@@ -47,7 +48,8 @@
 
 (defn create-resource [{base-url :base-url} type content]
   (request :post (make-url base-url type)
-           {:body (json/generate content)}))
+           {:body (json/generate content)
+            :headers {"Content-Type" "application/json"}}))
 
 (defn resource-exists? [{base-url :base-url} type id]
   (let [response (request :get (make-url base-url type id))]
