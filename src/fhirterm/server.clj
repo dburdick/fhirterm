@@ -4,7 +4,6 @@
             [ring.middleware.params :as ring-params]
             [ring.middleware.keyword-params :as ring-kw-params]
             [ring.middleware.stacktrace :as ring-stacktrace]
-            [fhirterm.db :as db]
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]
