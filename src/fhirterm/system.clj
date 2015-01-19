@@ -10,6 +10,24 @@
 
 (def ^:dynamic *system* nil)
 
+(defn- setup-logging [log-config]
+  (timbre/set-config! [:appenders :spit :enabled?] true)
+  (timbre/set-config! [:shared-appender-config :spit-filename] (:file log-config))
+  (timbre/set-level! (keyword (str/lower-case (or (System/getenv "LOG_LEVEL")
+                                                  (:level log-config)
+                                                  "info"))))
+  (timbre/set-config! [:fmt-output-fn]
+                      (fn [{:keys [level throwable message timestamp hostname ns]}
+                           & [{:keys [nofonts?] :as appender-fmt-output-opts}]]
+                        (format "%s %s [%s] - %s%s"
+                                timestamp
+                                (-> level name str/upper-case)
+                                ns (or message "")
+                                (or (timbre/stacktrace
+                                     throwable "\n"
+                                     (when nofonts? {})) ""))))
+  (debug "Log initialized"))
+
 (defn- make-system [{env :env log :log :as config} headless?]
   (when (empty? config)
     (throw (IllegalArgumentException. "nil or empty config passed to system/start")))
@@ -18,13 +36,7 @@
     (throw (IllegalArgumentException. (format "Invalid app environment: %s"
                                               env))))
 
-  (timbre/set-config! [:appenders :spit :enabled?] true)
-  (timbre/set-config! [:shared-appender-config :spit-filename] (:file log))
-  (timbre/set-level! (keyword (str/lower-case (or (System/getenv "LOG_LEVEL")
-                                                  (:level log)
-                                                  "info"))))
-
-  (debug "Log initialized")
+  (setup-logging log)
 
   (let [db (db/start config)]
     {:server (if headless? nil (server/start config db))
