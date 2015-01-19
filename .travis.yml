@@ -20,7 +20,10 @@ before_script:
   - wget -O /tmp/fhirbase.sql https://raw.githubusercontent.com/fhirbase/fhirbase/master/fhirbase--1.0.sql
   - PGPASSWORD=fhirbase psql -U fhirbase -h localhost fhirbase < /tmp/fhirbase.sql
   - wget -O /tmp/fhirplace-master.zip https://github.com/fhirbase/fhirplace/archive/master.zip
-  - cd .. && unzip /tmp/fhirplace-master.zip && cd fhirplace-master && lein run
+  - wget -O /tmp/routemap-master.zip https://github.com/niquola/route-map/archive/master.zip
+  - cd .. && unzip /tmp/fhirplace-master.zip
+  - unzip /tmp/routemap-master.zip fhirplace-master/lib && mv fhirplace-master/lib/routemap-master fhirplace-master/lib/route-map
+  - cd fhirplace-master && lein run
 
 script:
   - LOG_LEVEL=info lein test :tasks
