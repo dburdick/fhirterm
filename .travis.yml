@@ -22,7 +22,7 @@ before_script:
   - wget -O /tmp/fhirplace-master.zip https://github.com/fhirbase/fhirplace/archive/master.zip
   - wget -O /tmp/routemap-master.zip https://github.com/niquola/route-map/archive/master.zip
   - cd .. && unzip /tmp/fhirplace-master.zip
-  - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/routemap-master fhirplace-master/lib/route-map
+  - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/route-map-master fhirplace-master/lib/route-map
   - cd fhirplace-master && lein run
 
 script:
