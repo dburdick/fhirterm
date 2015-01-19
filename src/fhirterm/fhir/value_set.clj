@@ -1,24 +1,16 @@
 (ns fhirterm.fhir.value-set
   (:require [fhirterm.json :as json]
             [fhirterm.util :as util]
+            [fhirterm.fhir.client :as fhir-client]
             [fhirterm.naming-system.core :as naming-system]
             [clj-time.core :as time]
             [clojure.string :as str]))
 
 (defn find-by-id [id]
-  (let [result (db/q-one (-> (sql/select :content)
-                             (sql/from :fhir_value_sets)
-                             (sql/where [:= :id id])))]
-
-    (if result (:content result) nil)))
+  (fhir-client/get-resource "ValueSet" id))
 
 (defn find-by-identifier [identifier]
-  (let [result (db/q-one (-> (sql/select :content)
-                             (sql/from :fhir_value_sets)
-                             (sql/where [:= :identifier identifier])))]
-
-    (if result (json/parse (:content result)) nil)))
-
+  nil)
 
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]

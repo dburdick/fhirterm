@@ -53,5 +53,10 @@
   (let [response (request :get (make-url base-url type id))]
     (= (:status response) 200)))
 
+(defn get-resource [{base-url :base-url} type id]
+  (let [response (request :get (make-url base-url type id))]
+    (and (= (:status response) 200)
+         (:body response))))
+
 (defn get-description [{base-url :base-url}]
   (format "FHIR Server at %s" base-url))

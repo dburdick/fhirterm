@@ -45,3 +45,6 @@
 
 (defn get-description []
   (invoke 'get-description))
+
+(defn get-resource [type id]
+  (invoke 'get-resource type id))
