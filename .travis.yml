@@ -25,7 +25,7 @@ before_script:
   - cd .. && unzip /tmp/fhirplace-master.zip
   - unzip /tmp/routemap-master.zip -d fhirplace-master/lib && rm -rf fhirplace-master/lib/route-map && mv fhirplace-master/lib/route-map-master fhirplace-master/lib/route-map
   - cd fhirplace-master && FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run &
-  - cd ../fhirterm
+  - cd /home/travis/build/fhirbase/fhirterm
 
 script:
   - LOG_LEVEL=info lein test :tasks
