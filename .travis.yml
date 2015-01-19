@@ -30,7 +30,7 @@ before_script:
   # - lein deps
   # - FHIRPLACE_WEB_PORT=3000 FHIRPLACE_SUBPROTOCOL=postgresql FHIRPLACE_SUBNAME="//127.0.0.1:5432/fhirbase" FHIRPLACE_USER=fhirbase FHIRPLACE_PASSWORD=fhirbase lein run > /dev/null &
   - wget -O /tmp/fss.zip https://github.com/mlapshin/fhirterm-fss/archive/master.zip
-  - cd .. && unzip /tmp/fss.zip && cd fhirterm-fss
+  - cd .. && unzip /tmp/fss.zip && cd fhirterm-fss-master
   - sudo bundle install
   - bundle exec rackup -p 3000
   - until $(curl --output /dev/null --silent --head --fail http://localhost:3000); do printf '.'; sleep 5; done
