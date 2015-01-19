@@ -7,13 +7,13 @@
 
 (def snomed-uri "http://snomed.info/sct")
 
-(defn lookup-code [db params]
-  (let [found-concept (db/q-one db (-> (sql/select [:sd.term :display]
-                                         [:sd.concept_id :code])
-                                       (sql/from [:snomed_descriptions_no_history :sd])
-                                       (sql/where [:= :sd.concept_id
-                                                   (java.lang.Long. (:code params))])
-                                       (sql/limit 1)))]
+(defn lookup-code [params]
+  (let [found-concept (db/q-one (-> (sql/select [:sd.term :display]
+                                      [:sd.concept_id :code])
+                                    (sql/from [:snomed_descriptions_no_history :sd])
+                                    (sql/where [:= :sd.concept_id
+                                                (java.lang.Long. (:code params))])
+                                    (sql/limit 1)))]
     (when found-concept
       {:name "SNOMED"
        :version "to.do"
@@ -51,7 +51,7 @@
             :abstract false
             :version "to.do"}))
 
-(defn filter-codes [db {:keys [include exclude :as filters]}]
+(defn filter-codes [{:keys [include exclude :as filters]}]
   (let [included-query (filters-to-query include)
         excluded-query (filters-to-query exclude)
         concept-ids-query (combine-queries :except [included-query excluded-query])]

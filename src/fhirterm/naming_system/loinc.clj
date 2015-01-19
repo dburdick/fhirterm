@@ -5,11 +5,11 @@
 
 (def loinc-uri "http://loinc.org")
 
-(defn lookup-code [db params]
-  (let [found-loinc (db/q-one db (-> (sql/select :*)
-                                     (sql/from :loinc_loincs)
-                                     (sql/where [:= :loinc_num (:code params)])
-                                     (sql/limit 1)))]
+(defn lookup-code [params]
+  (let [found-loinc (db/q-one (-> (sql/select :*)
+                                  (sql/from :loinc_loincs)
+                                  (sql/where [:= :loinc_num (:code params)])
+                                  (sql/limit 1)))]
     (when found-loinc
       {:name "LOINC"
        :version "to.do"
@@ -63,12 +63,12 @@
    (and (not inc-pred) excl-pred) [:not excl-pred]
    :default nil))
 
-(defn filter-codes [db filters]
+(defn filter-codes [filters]
   (let [pred (combine-preds (filters-to-sql-cond (:include filters))
                             (filters-to-sql-cond (:exclude filters)))
 
-        codings (db/q db (-> (sql/select :loinc_num :shortname)
-                             (sql/from :loinc_loincs)
-                             ((fn [q]
-                                (if pred (sql/where q pred) q)))))]
+        codings (db/q (-> (sql/select :loinc_num :shortname)
+                          (sql/from :loinc_loincs)
+                          ((fn [q]
+                             (if pred (sql/where q pred) q)))))]
     (map row-to-coding codings)))

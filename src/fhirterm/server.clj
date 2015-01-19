@@ -35,13 +35,13 @@
 (defroutes app
   (context "/ValueSet" []
     (GET "/$lookup" {params :params :as request}
-      (let [result (ns-core/lookup-code db params)]
+      (let [result (ns-core/lookup-code params)]
         (if result
           (respond-with 200 (fhir/make-parameters result))
           (respond-with-not-found "Could not find requested coding"))))
 
     (GET "/:id/$expand" {{id :id :as params} :params :as request}
-      (let [vs (vs/find-by-id db id)]
+      (let [vs (vs/find-by-id id)]
         (if vs
           (respond-with 200 (vs/expand db vs params))
           (respond-with-not-found (format "Could not find ValueSet with id = %s" id))))))

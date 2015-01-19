@@ -25,8 +25,8 @@
       (apply (ns-resolve system-ns method-name) args)
       (throw (IllegalArgumentException. (format "Unknown NamingSystem: %s" system))))))
 
-(defn lookup-code [db {:keys [system] :as params}]
-  (invoke-ns-method system 'lookup-code db params))
+(defn lookup-code [{:keys [system] :as params}]
+  (invoke-ns-method system 'lookup-code params))
 
-(defn filter-codes [db system filters]
-  (invoke-ns-method system 'filter-codes db filters))
+(defn filter-codes [system filters]
+  (invoke-ns-method system 'filter-codes filters))
