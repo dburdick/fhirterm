@@ -48,3 +48,6 @@
 
 (defn get-resource [type id]
   (invoke 'get-resource type id))
+
+(defn search [type params]
+  (invoke 'search type params))

@@ -20,7 +20,10 @@
 (defn- request [method url & [params]]
   (debug "FHIR REST:"
          (str/upper-case (name method))
-         url)
+         url
+         (if (:query-params params)
+           (str "? " (pr-str (:query-params params)))
+           ""))
 
   (let [start-time (System/currentTimeMillis)
         response @(http/request (merge default-request-params
@@ -57,6 +60,11 @@
 
 (defn get-resource [{base-url :base-url} type id]
   (let [response (request :get (make-url base-url type id))]
+    (and (= (:status response) 200)
+         (:body response))))
+
+(defn search [{base-url :base-url} type params]
+  (let [response (request :get (make-url base-url type) {:query-params params})]
     (and (= (:status response) 200)
          (:body response))))
 

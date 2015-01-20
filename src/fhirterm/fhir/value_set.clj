@@ -10,7 +10,8 @@
   (fhir-client/get-resource "ValueSet" id))
 
 (defn find-by-identifier [identifier]
-  nil)
+  (get-in (fhir-client/search "ValueSet" {:identifier identifier})
+          [:entry 0 :resource]))
 
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]

@@ -87,3 +87,11 @@
     (is (find-coding result 164006007))
 
     (is (= (count result) 4082))))
+
+(deftest ^:integration expansion-of-vs-with-import-test
+  (let [result (get-expansion (expand-vs "valueset-questionnaire-question-text-type"))]
+
+    (doseq [c ["instruction" "security" "trailing" "tooltip" "units"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 6))))
