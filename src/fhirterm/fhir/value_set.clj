@@ -17,6 +17,16 @@
   (get-in (fhir-client/search "ValueSet" {:system ns-uri})
           [:entry 0 :resource]))
 
+(defn- resolve-naming-system [ns-uri]
+  (if (naming-system/known? ns-uri)
+    ns-uri
+
+    (let [vs-ns (find-vs-defining-ns ns-uri)]
+      (if vs-ns
+        vs-ns
+        (throw (IllegalArgumentException. (format "Unknown NamingSystem: %s"
+                                                  ns-uri)))))))
+
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]
          (let [regular-filters (or (:filter inc) [])
@@ -41,7 +51,8 @@
                 {} (keys includes-by-syst))]
 
     (reduce (fn [res [ns filters]]
-              (into res (naming-system/filter-codes ns filters)))
+              (let [system (resolve-naming-system ns)]
+                (into res (naming-system/filter-codes system filters))))
             expansion filters-for-external-ns)))
 
 (defn- expand-with-define [expansion {{:keys [system concept]} :define :as vs}]
