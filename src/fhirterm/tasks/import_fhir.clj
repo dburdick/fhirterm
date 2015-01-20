@@ -1,6 +1,5 @@
 (ns fhirterm.tasks.import-fhir
-  (:require [fhirterm.db :as db]
-            [org.httpkit.client :as http]
+  (:require [org.httpkit.client :as http]
             [fhirterm.json :as json]
             [clj-time.format :as tf]
             [clojure.string :as str]
@@ -22,7 +21,7 @@
     (println (format "%d ValueSets in the Bundle" (count vs)))
     vs))
 
-(defn perform [db args]
+(defn perform [_ args]
   (println "Importing FHIR ValueSets from" vs-url
            "to" (fhir-client/get-description))
 
