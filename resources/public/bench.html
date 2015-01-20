@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="bench">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>FHIRTerm Benchmark</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.9/angular.min.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script type="text/javascript">
+     var bench = angular.module('bench',[]);
+
+     bench.controller('BenchCtrl', ['$scope', function($scope) {
+       $scope.fhirServerUrl = 'http://localhost:3000';
+     }]);
+    </script>
+  </head>
+  <body>
+    <div class="container" ng-controller="BenchCtrl">
+
+      <div class="page-header">
+        <h1>FHIRTerm Benchmark</h1>
+        <p class="lead">Takes every ValueSet available at specified FHIR server and tries to $expand it.</p>
+      </div>
+
+      <form class="form-inline">
+        <div class="form-group">
+          <label for="fhir-server-url">FHIR Server URL:</label>
+          <input type="text" class="form-control"
+                 id="fhir-server-url" ng-model="fhirServerUrl" />
+
+        </div>
+        <button type="submit" class="btn btn-primary">Start Benchmark</button>
+      </form>
+
+    </div>
+  </body>
+</html>
