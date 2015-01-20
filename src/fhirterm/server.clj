@@ -4,6 +4,7 @@
             [ring.middleware.params :as ring-params]
             [ring.middleware.keyword-params :as ring-kw-params]
             [ring.middleware.stacktrace :as ring-stacktrace]
+            [ring.middleware.resource :as ring-resource]
             [fhirterm.json :as json]
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]
@@ -80,13 +81,19 @@
     (wrap-with-operation-outcome-exception-handler handler)
     (ring-stacktrace/wrap-stacktrace handler)))
 
+(defn wrap-with-static-files-server-in-development [handler env]
+  (if (= :development env)
+    (ring-resource/wrap-resource handler "public")
+    handler))
+
 (defn- make-handler [env]
   (-> #(app %)
       (wrap-with-benchmark)
       (ring-kw-params/wrap-keyword-params)
       (ring-params/wrap-params)
       (wrap-with-exception-handler env)
-      (assoc-into-request-mw {:env env})))
+      (assoc-into-request-mw {:env env})
+      (wrap-with-static-files-server-in-development env)))
 
 (defn start [{env :env :as config} db]
   (let [port (get-in config [:http :port])]
