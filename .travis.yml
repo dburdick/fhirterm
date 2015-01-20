@@ -43,4 +43,5 @@ before_script:
 
 script:
   - LOG_LEVEL=info lein test :tasks
+  - cat /var/log/postgresql/postgresql-9.4-main.log
   - lein test :integration
