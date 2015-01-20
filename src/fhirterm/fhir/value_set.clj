@@ -13,6 +13,10 @@
   (get-in (fhir-client/search "ValueSet" {:identifier identifier})
           [:entry 0 :resource]))
 
+(defn find-vs-defining-ns [ns-uri]
+  (get-in (fhir-client/search "ValueSet" {:system ns-uri})
+          [:entry 0 :resource]))
+
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]
          (let [regular-filters (or (:filter inc) [])

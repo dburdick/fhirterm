@@ -95,3 +95,19 @@
       (is (find-coding result c)))
 
     (is (= (count result) 6))))
+
+(deftest ^:integration expansion-of-vs-inclusion-of-ns-defined-in-other-value-set-test
+  (let [result (get-expansion (expand-vs "valueset-contraindication-mitigation-action"))]
+
+    (doseq [c ["EMAUTH" "21" "1" "19" "2"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 24))))
+
+(deftest ^:integration expansion-of-vs-inclusion-of-ns-defined-in-other-value-set-second-test
+  (let [result (get-expansion (expand-vs "valueset-relatedperson-relationshiptype"))]
+
+    (doseq [c ["WIFE" "HUSB" "NBOR" "ROOM" "SPS"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 120))))

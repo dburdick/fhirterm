@@ -1,5 +1,7 @@
 (ns fhirterm.naming-system.core
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [fhirterm.fhir.value-set :as vs]
+            [fhirterm.naming-system.vs-defined :as vs-defined-ns]))
 
 (def uri-to-symbolic-name
   {"http://loinc.org" :loinc
@@ -23,7 +25,15 @@
 
     (if system-ns
       (apply (ns-resolve system-ns method-name) args)
-      (throw (IllegalArgumentException. (format "Unknown NamingSystem: %s" system))))))
+
+      ;; search for defining VS
+      (let [defining-vs (vs/find-vs-defining-ns system-uri)]
+        (if defining-vs
+          (apply (ns-resolve 'fhirterm.naming-system.vs-defined method-name)
+                 defining-vs args)
+
+          (throw (IllegalArgumentException. (format "Unknown NamingSystem: %s"
+                                                    system))))))))
 
 (defn lookup-code [{:keys [system] :as params}]
   (invoke-ns-method system 'lookup-code params))
