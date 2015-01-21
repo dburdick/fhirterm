@@ -2,16 +2,20 @@
   (:require [clojure.set :as set]))
 
 (defn- concept-matches-filter? [{:keys [property op value]} path concept]
-  (when (not= op "is-a")
+  (when (not (contains? #{"is-a" "in"} op) )
     (throw (IllegalArgumentException.
             (format "Unknown filtering operation: %s" op))))
 
-  (when (not= property "concept")
+  (when (not (contains? #{"concept" "code"} property))
     (throw (IllegalArgumentException.
             (format "Unknown filtering property: %s" concept))))
 
-  (and (not (:abstract concept))
-       (not (empty? (filter (partial = value) path)))))
+  (let [matches (condp = op
+                  "is-a" (not (empty? (filter (partial = value) path)))
+                  "in" (contains? value (:code concept)))]
+
+    (and matches
+         (not (:abstract concept)))))
 
 (defn- concept-matches-filters? [filters path concept]
   (reduce (fn [r fs]

@@ -30,7 +30,7 @@
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]
          (let [regular-filters (or (:filter inc) [])
-               codes (or (map :code (:concept inc)) [])
+               codes (set (or (map :code (:concept inc)) []))
                code-filter (if (empty? codes)
                              []
                              [{:op "in" :property "code" :value codes}])]
