@@ -22,15 +22,20 @@
        :designation [{:value (:display found-concept)}]})))
 
 (defn- filter-to-query [{:keys [op value property] :as f}]
-  (when-not (and (= op "is-a") (= property "concept"))
-    (throw (IllegalArgumentException. (str "Don't know how to expand filter "
-                                           (pr-str f)))))
+  (cond
+   (and (= op "is-a") (= property "concept"))
+   (-> (sql/select [:%unnest.descendants :concept_id])
+       (sql/from [:snomed_ancestors_descendants :sad])
+       (sql/where [:= :sad.concept_id (java.lang.Long. value)])
+       (sqlc/format)
+       (first))
 
-  (-> (sql/select [:%unnest.descendants :concept_id])
-      (sql/from [:snomed_ancestors_descendants :sad])
-      (sql/where [:= :sad.concept_id (java.lang.Long. value)])
-      (sqlc/format)
-      (first)))
+   (and (= op "in") (= property "code"))
+   (str "SELECT unnest('{" (str/join "," value) "}'::bigint[]) AS concept_id")
+
+   :else
+   (throw (IllegalArgumentException. (str "Don't know how to apply filter "
+                                          (pr-str f))))))
 
 (defn- combine-queries [op qs]
   (let [qs (remove (fn [x] (or (nil? x) (str/blank? x))) qs)]
@@ -51,14 +56,26 @@
             :abstract false
             :version "to.do"}))
 
-(defn filter-codes [{:keys [include exclude :as filters]}]
-  (let [included-query (filters-to-query include)
-        excluded-query (filters-to-query exclude)
-        concept-ids-query (combine-queries :except [included-query excluded-query])]
+(defn filters-empty? [i e]
+  (empty? (flatten [i e])))
 
+(defn filter-codes [{:keys [include exclude :as filters]}]
+  (if (filters-empty? include exclude)
     (map row-to-coding
-         (db/q (-> (sql/select [:t.concept_id :code]
-                     [:sd.term :display])
-                   (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
+         (db/q (-> (sql/select [:sc.id :code] [:sd.term :display])
+                   (sql/from [:snomed_concepts :sc])
                    (sql/join [:snomed_descriptions_no_history :sd]
-                             [:= :sd.concept_id :t.concept_id]))))))
+                             [:= :sd.concept_id :sc.id])
+
+                   (sql/where [:= :active true]))))
+
+    (let [included-query (filters-to-query include)
+          excluded-query (filters-to-query exclude)
+          concept-ids-query (combine-queries :except [included-query excluded-query])]
+
+      (map row-to-coding
+           (db/q (-> (sql/select [:t.concept_id :code]
+                       [:sd.term :display])
+                     (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
+                     (sql/join [:snomed_descriptions_no_history :sd]
+                               [:= :sd.concept_id :t.concept_id])))))))
