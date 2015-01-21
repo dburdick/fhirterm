@@ -35,7 +35,7 @@
     (case (:op f)
       "=" [:= column (get-in value-fixup-map [column (:value f)]
                              (:value f))]
-      "in" [:in column (:value f)]
+      "in" [:in column (vec (:value f))]
       (throw (IllegalArgumentException. (format "Unknown filtering op: %s" (:op f)))))))
 
 (defn- filters-to-sql-cond [filters]
