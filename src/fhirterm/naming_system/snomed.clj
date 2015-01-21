@@ -62,12 +62,12 @@
 (defn filter-codes [{:keys [include exclude :as filters]}]
   (if (filters-empty? include exclude)
     (map row-to-coding
-         (db/q (-> (sql/select [:sc.id :code] [:sd.term :display])
+         (db/q (-> (sql/select [:%distinct.sc.id :code] [:sd.term :display])
                    (sql/from [:snomed_concepts :sc])
                    (sql/join [:snomed_descriptions_no_history :sd]
                              [:= :sd.concept_id :sc.id])
 
-                   (sql/where [:= :active true]))))
+                   (sql/where [:= :sc.active true]))))
 
     (let [included-query (filters-to-query include)
           excluded-query (filters-to-query exclude)
