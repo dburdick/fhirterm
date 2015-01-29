@@ -30,7 +30,9 @@
        (first))
 
    (and (= op "in") (= property "code"))
-   (str "SELECT unnest('{" (str/join "," value) "}'::bigint[]) AS concept_id")
+   (str "SELECT unnest('{"
+        (str/join "," (keys value))
+        "}'::bigint[]) AS concept_id")
 
    :else
    (throw (IllegalArgumentException. (str "Don't know how to apply filter "

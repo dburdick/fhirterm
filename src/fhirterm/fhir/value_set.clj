@@ -30,10 +30,13 @@
 (defn- filters-from-include-or-exclude [includes]
   (map (fn [inc]
          (let [regular-filters (or (:filter inc) [])
-               codes (set (or (map :code (:concept inc)) []))
-               code-filter (if (empty? codes)
+               concepts (reduce (fn [acc c]
+                                  (assoc acc (:code c) c))
+                                {} (:concept inc))
+
+               code-filter (if (empty? concepts)
                              []
-                             [{:op "in" :property "code" :value codes}])]
+                             [{:op "in" :property "code" :value concepts}])]
 
            (into regular-filters code-filter)))
        includes))

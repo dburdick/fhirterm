@@ -1,5 +1,4 @@
-(ns fhirterm.naming-system.vs-defined
-  (:require [clojure.set :as set]))
+(ns fhirterm.naming-system.vs-defined)
 
 (defn- concept-matches-filter? [{:keys [property op value]} path concept]
   (when (not (contains? #{"is-a" "in"} op) )
@@ -12,7 +11,7 @@
 
   (let [matches (condp = op
                   "is-a" (not (empty? (filter (partial = value) path)))
-                  "in" (contains? value (:code concept)))]
+                  "in"   (contains? value (:code concept)))]
 
     (and matches
          (not (:abstract concept)))))

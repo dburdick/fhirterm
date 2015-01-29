@@ -182,4 +182,5 @@
   nil)
 
 (defn filter-codes [filters]
-  nil)
+  (println "UCUM FILTERS: " (pr-str filters))
+  [])
