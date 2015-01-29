@@ -4,7 +4,8 @@
 
 (def uri-to-symbolic-name
   {"http://loinc.org" :loinc
-   "http://snomed.info/sct" :snomed})
+   "http://snomed.info/sct" :snomed
+   "http://unitsofmeasure.org" :ucum})
 
 (defn- normalize-system-uri [uri]
   (str/replace uri #"/$" ""))

@@ -1,0 +1,13 @@
+div = "/";
+mult = ".";
+sign	=	"+" | "-";
+<digit>	=	"0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
+<digits>	=	digit digits | digit;
+factor	=	digits;
+exponent =	sign, digits | digits;
+<simple-unit>	=	ATOM-SYMBOL | PREFIX-SYMBOL, ATOM-SYMBOL;
+<annotatable>	=	simple-unit, exponent | simple-unit;
+<component> =	annotatable, annotation | annotatable | annotation | factor | "(", term, ")";
+<term> =	component, mult, term | component, div, term | component;
+<main-term> =	div, term | term;
+annotation = "{", ANNOTATION-STRING, "}";

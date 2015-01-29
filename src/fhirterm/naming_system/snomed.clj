@@ -2,7 +2,6 @@
   (:require [honeysql.helpers :as sql]
             [clojure.string :as str]
             [fhirterm.db :as db]
-            [clojure.string :as str]
             [honeysql.core :as sqlc]))
 
 (def snomed-uri "http://snomed.info/sct")
