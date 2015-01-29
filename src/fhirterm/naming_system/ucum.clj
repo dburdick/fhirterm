@@ -3,6 +3,7 @@
             [clojure.xml :as xml]
             [clojure.zip :as zip]
             [clojure.java.io :as io]
+            [clojure.set :as set]
             [instaparse.core :as insta]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -158,8 +159,8 @@
   [s]
   (let [match (re-find #"(\D)(\d+)$" s)]
     (if match
-     (str (second match) (* -1 (Integer/valueOf (nth match 2))))
-     (str s "-1"))))
+      (str (second match) (* -1 (Integer/valueOf (nth match 2))))
+      (str s "-1"))))
 
 (defn grammar
   "Function to read the UCUM EBNF grammar into a string."
@@ -178,9 +179,53 @@
 ;; End of UCUM-lib code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def ucum-uri "http://unitsofmeasure.org")
+
+(def units-map
+  "Map containing all units where keys are :code of unit"
+  (reduce (fn [m u] (assoc m (:code u) u))
+          {} (into (nth units 1) (nth units 2))))
+
+(defn- apply-filter [{:keys [op value property] :as f}]
+  (cond
+   (and (= op "in") (= property "code")) value
+
+   :else
+   (throw (IllegalArgumentException. (str "Don't know how to apply filter "
+                                          (pr-str f))))))
+
+(defn- apply-set-fn-to-maps [f maps]
+  (select-keys (apply merge maps)
+               (apply f (map keys maps))))
+
+(defn- apply-filters* [fs]
+  (reduce (fn [acc inner-fs]
+            (merge acc
+                   (apply-set-fn-to-maps set/intersection
+                                         (map apply-filter inner-fs))))
+          {} fs))
+
+(defn- apply-filters [{inc :include excl :exclude :as f}]
+  (apply-set-fn-to-maps set/difference
+                        [(apply-filters* inc) (apply-filters* excl)]))
+
+(defn filters-empty? [i e]
+  (empty? (flatten [i e])))
+
+(defn- to-coding [[code smth]]
+  (if (contains? smth :display)
+    (merge smth {:system ucum-uri
+                 :version "to.do"})
+
+    {:system ucum-uri
+     :version "to.do"
+     :code code
+     :display (:name smth)}))
+
 (defn lookup-code [{:keys [system] :as params}]
   nil)
 
 (defn filter-codes [filters]
-  (println "UCUM FILTERS: " (pr-str filters))
-  [])
+  (if (filters-empty? (:include filters) (:exclude filters))
+    (map to-coding units-map)
+    (map to-coding (apply-filters filters))))
