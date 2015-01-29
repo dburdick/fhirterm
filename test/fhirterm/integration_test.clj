@@ -108,3 +108,19 @@
       (is (find-coding result c)))
 
     (is (= (count result) 120))))
+
+(deftest ^:integration expansion-of-ucum-value-sets-test
+  (let [result (get-expansion (expand-vs "valueset-ucum-vitals-common"))]
+    (doseq [c ["%" "cm" "kg" "Cel" "m2"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 8)))
+
+  (let [result (get-expansion (expand-vs "valueset-ucum-common"))]
+    (doseq [c ["%{Fat}" "/g{tot'nit}"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 1363)))
+
+  (let [result (get-expansion (expand-vs "ccdaagecodes"))]
+    (is (= (count result) 6))))
