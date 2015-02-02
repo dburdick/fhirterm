@@ -92,17 +92,7 @@ $BODY$
 LANGUAGE sql IMMUTABLE"])
 
 (defn- prepare-db [db]
-  (jdbc/with-db-transaction [trans db]
-    (doseq [[tbl tbl-columns] snomed-tables]
-      (db/e! (format "DROP TABLE IF EXISTS %s" (name tbl)))
-      (db/e! trans
-             (apply jdbc/create-table-ddl tbl tbl-columns)))
 
-    (doseq [i snomed-indices]
-      (db/e! trans i))
-
-    (doseq [i stored-procedures]
-      (db/e! trans i)))
 
   (println "Created SNOMED tables"))
 
@@ -113,7 +103,7 @@ LANGUAGE sql IMMUTABLE"])
     (when result
       (.getPath result))))
 
-(defn- load-snomed-csv [db tmp-path]
+(defn- load-snomed-csv [tmp-path]
   (let [files-seq (file-seq (io/file tmp-path))
         concepts-path (find-file files-seq
                                  #"SnomedCT_Release_INT_\d{8}/RF2Release/Full/Terminology/sct2_Concept_Full_INT_\d{8}.txt$")
@@ -122,38 +112,42 @@ LANGUAGE sql IMMUTABLE"])
         descriptions-path (find-file files-seq
                                      #"SnomedCT_Release_INT_\d{8}/RF2Release/Full/Terminology/sct2_Description_Full-en_INT_\d{8}.txt$")]
 
-    (jdbc/with-db-transaction [trans db]
+    (jdbc/with-db-transaction [trans db/*db*]
+      (doseq [[tbl tbl-columns] snomed-tables]
+        (db/e! trans (format "DROP TABLE IF EXISTS %s" (name tbl)))
+        (db/e! trans (apply jdbc/create-table-ddl tbl tbl-columns)))
+
+      (doseq [i snomed-indices] (db/e! trans i))
+
+      (doseq [i stored-procedures] (db/e! trans i))
+
       (println (format "Importing SNOMED concepts from %s" concepts-path))
-      (db/e! (format "COPY snomed_concepts FROM '%s' WITH DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'"
-                     concepts-path)))
+      (db/e! trans (format "COPY snomed_concepts FROM '%s' WITH FREEZE DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'" concepts-path))
 
-    (jdbc/with-db-transaction [trans db]
       (println (format "Importing SNOMED descriptions from %s" descriptions-path))
-      (db/e! (format "COPY snomed_descriptions FROM '%s' WITH DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'"
-                     descriptions-path)))
+      (db/e! trans (format "COPY snomed_descriptions FROM '%s' WITH FREEZE DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'" descriptions-path))
 
-    (jdbc/with-db-transaction [trans db]
       (println (format "Importing SNOMED relations from %s" relations-path))
-      (db/e! (format "COPY snomed_relations FROM '%s' WITH DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'"
-                     relations-path)))
+      (db/e! trans (format "COPY snomed_relations FROM '%s' WITH FREEZE DELIMITER AS E'\t' CSV HEADER QUOTE AS '`'" relations-path))
 
-    (println "Copying \"is-a\" relations into separate table...")
-    (db/e! "INSERT INTO snomed_is_a_relations (id, source_id, destination_id)
-            SELECT id, source_id, destination_id FROM snomed_relations
-            WHERE type_id = 116680003 AND active = TRUE")))
+      (println "Copying \"is-a\" relations into separate table...")
+      (db/e! trans "INSERT INTO snomed_is_a_relations (id, source_id, destination_id)
+                    SELECT id, source_id, destination_id FROM snomed_relations
+                    WHERE type_id = 116680003 AND active = TRUE"))))
 
-(defn- prewalk-is-a-relations [db]
+(defn- prewalk-is-a-relations []
   (println "Prewalking SNOMED graph (may take some time)")
-  (jdbc/db-do-commands db false "VACUUM ANALYZE snomed_is_a_relations")
+  (jdbc/db-do-commands db/*db* false "VACUUM ANALYZE snomed_is_a_relations")
   (db/e! "INSERT INTO snomed_ancestors_descendants (concept_id, ancestors, descendants)
           SELECT t.id, snomed_get_ancestors(t.id), snomed_get_descendants(t.id)
           FROM
           (SELECT DISTINCT(source_id) AS id FROM snomed_is_a_relations
            UNION
            SELECT DISTINCT(destination_id) AS id FROM snomed_is_a_relations) t")
+
   (println "Finished prewalking SNOMED graph"))
 
-(defn- fill-descriptions-no-history-table [db]
+(defn- fill-descriptions-no-history-table []
   (println "Deleting historical descriptions")
 
   (db/e! "INSERT INTO snomed_descriptions_no_history (concept_id, effective_time, term)
@@ -165,16 +159,15 @@ LANGUAGE sql IMMUTABLE"])
              WHERE active = TRUE AND type_id = 900000000000003001
           ) t WHERE t.r = 1"))
 
-(defn perform* [db zip-file]
+(defn perform* [zip-file]
   (unzip-file zip-file
               (fn [tmp-path]
-                (prepare-db db)
-                (load-snomed-csv db tmp-path)
-                (prewalk-is-a-relations db)
-                (fill-descriptions-no-history-table db)
+                (load-snomed-csv tmp-path)
+                (prewalk-is-a-relations)
+                (fill-descriptions-no-history-table)
                 (println "Finished importing SNOMED"))))
 
-(defn perform [db args]
+(defn perform [_ args]
   (let [zip-file (first args)]
     (check-zip-file-is-specified zip-file "SnomedCT_Release_INT_XXXXXXXX.zip")
-    (perform* db zip-file)))
+    (perform* zip-file)))

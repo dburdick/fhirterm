@@ -29,35 +29,31 @@
 (def indices ["CREATE INDEX loinc_loincs_on_order_obs_idx ON %s(order_obs)"
               "CREATE INDEX loinc_loincs_on_status_idx ON %s(status)"])
 
-(defn- prepare-db [db]
-  (jdbc/with-db-transaction [trans db]
+(defn- load-loinc-csv [csv-path]
+  (jdbc/with-db-transaction [trans db/*db*]
     (db/e! trans (format "DROP TABLE IF EXISTS %s" (name loinc-table)))
     (db/e! trans
            (apply jdbc/create-table-ddl loinc-table loinc-columns))
 
-    (doseq [i indices]
-      (db/e! trans
-             (format i (name loinc-table)))))
+    (println "Uploading LOINC CSV")
+
+    (db/e! trans (format "COPY loinc_loincs FROM '%s' WITH FREEZE DELIMITER AS ',' CSV HEADER QUOTE AS '\"'"
+                         csv-path))
+
+    (doseq [i indices] (db/e! trans (format i (name loinc-table)))))
+
+  (let [loincs-count (db/q-val (-> (sql/select [:%count.* :count])
+                                   (sql/from loinc-table)))]
+    (println (format "Done, imported %d LOINC records" loincs-count)))
 
   (println (format "Created %s table" (name loinc-table))))
 
-(defn- load-loinc-csv [db csv-path]
-  (println "Uploading LOINC CSV")
-
-  (db/e! (format "COPY loinc_loincs FROM '%s' WITH DELIMITER AS ',' CSV HEADER QUOTE AS '\"'"
-                 csv-path))
-
-  (let [loincs-count (db/q-val db (-> (sql/select [:%count.* :count])
-                                      (sql/from loinc-table)))]
-    (println (format "Done, imported %d LOINC records" loincs-count))))
-
-(defn- perform* [db zip-path]
+(defn- perform* [zip-path]
   (unzip-file zip-path
               (fn [tmp-path]
-                (prepare-db db)
-                (load-loinc-csv db (make-path tmp-path "loinc.csv")))))
+                (load-loinc-csv (make-path tmp-path "loinc.csv")))))
 
-(defn perform [db args]
+(defn perform [_ args]
   (let [zip-file (first args)]
     (check-zip-file-is-specified zip-file "LOINC_XXX_Text.zip")
-    (perform* db zip-file)))
+    (perform* zip-file)))

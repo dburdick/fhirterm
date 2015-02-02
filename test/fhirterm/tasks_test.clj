@@ -5,10 +5,12 @@
             [fhirterm.db :as db]
             [fhirterm.tasks.import-fhir :as import-fhir]
             [fhirterm.tasks.import-snomed :as import-snomed]
-            [fhirterm.tasks.import-loinc :as import-loinc]))
+            [fhirterm.tasks.import-loinc :as import-loinc]
+            [fhirterm.tasks.import-rxnorm :as import-rxnorm]))
 
 (def snomed-zip-path "data/snomed.zip")
 (def loinc-zip-path "data/loinc.zip")
+(def rxnorm-zip-path "data/rxnorm.zip")
 
 (deftest ^:task import-fhir-test
   (import-fhir/perform db/*db* []))
@@ -18,6 +20,10 @@
 
   (is (> (db/q-val "SELECT COUNT(*) FROM snomed_descriptions") 0))
   (is (> (db/q-val "SELECT COUNT(*) FROM snomed_ancestors_descendants") 0)))
+
+(deftest ^:task import-rxnorm-test
+  (import-rxnorm/perform db/*db* [rxnorm-zip-path])
+  (is (> (db/q-val "SELECT COUNT(*) FROM rxn_conso") 0)))
 
 (deftest ^:task import-loinc-test
   (import-loinc/perform db/*db* [loinc-zip-path])
@@ -31,4 +37,5 @@
   (import-fhir-test)
   (import-loinc-test)
   (import-snomed-test)
+  (import-rxnorm-test)
   (system/stop))

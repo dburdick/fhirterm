@@ -25,6 +25,7 @@ before_script:
   # - sudo su postgres -c "psql -c \"create role fhirbase with superuser login encrypted password 'fhirbase';\""
   - wget -O data/loinc.zip https://www.dropbox.com/s/u4qsfc7ciiaqfqa/LOINC_248_Text.zip?dl=1
   - wget -O data/snomed.zip https://www.dropbox.com/s/rr5bho3npfnviji/SnomedCT_Release_INT_20140731_only_data.zip?dl=1
+  - wget -O data/rxnorm.zip https://www.dropbox.com/s/mipvp6i57es7pew/RxNorm_full_01052015_only_data.zip?dl=1
   # - wget -O /tmp/fhirbase.sql https://raw.githubusercontent.com/fhirbase/fhirbase/master/fhirbase--1.0.sql
   # - PGPASSWORD=fhirbase psql -U fhirbase -h localhost fhirbase < /tmp/fhirbase.sql
   # - wget -O /tmp/fhirplace-master.zip https://github.com/fhirbase/fhirplace/archive/master.zip
