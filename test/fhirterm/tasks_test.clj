@@ -3,7 +3,7 @@
             [clojure.test :refer :all]
             [clojure.string :as str]
             [fhirterm.db :as db]
-            [fhirterm.tasks.import-fhir :as import-fhir]
+            [fhirterm.tasks.import-vs :as import-vs]
             [fhirterm.tasks.import-snomed :as import-snomed]
             [fhirterm.tasks.import-loinc :as import-loinc]
             [fhirterm.tasks.import-rxnorm :as import-rxnorm]))
@@ -12,8 +12,8 @@
 (def loinc-zip-path "data/loinc.zip")
 (def rxnorm-zip-path "data/rxnorm.zip")
 
-(deftest ^:task import-fhir-test
-  (import-fhir/perform db/*db* []))
+(deftest ^:task import-vs-test
+  (import-vs/perform db/*db* ["test/fixtures/value_sets"]))
 
 (deftest ^:task import-snomed-test
   (import-snomed/perform db/*db* [snomed-zip-path])
@@ -34,7 +34,7 @@
 ;; so we define this hook fn to specify order here
 (defn test-ns-hook []
   (system/start-headless (system/read-config "test/config.json"))
-  (import-fhir-test)
+  (import-vs-test)
   (import-loinc-test)
   (import-snomed-test)
   (import-rxnorm-test)
