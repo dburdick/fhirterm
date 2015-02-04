@@ -4,7 +4,7 @@
             [clojure.string :as string]
             [fhirterm.json :as json]
             [fhirterm.system :as system]
-            [fhirterm.tasks.import-fhir :as import-fhir]
+            [fhirterm.tasks.import-vs :as import-vs]
             [fhirterm.tasks.import-snomed :as import-snomed]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
