@@ -17,7 +17,7 @@
         options-summary
         ""
         "Actions:"
-        "  import-fhir    Import standard FHIR ValueSets and ConceptMaps into FHIR server"
+        "  import-vs      Import content of specified directory as FHIR ValueSets"
         "  import-loinc   Import LOINC NS from ZIP distribution"
         "  import-snomed  Import SNOMEDCT NS from ZIP distribution"
         ""
@@ -25,7 +25,7 @@
        (string/join \newline)))
 
 (def task-to-namespace-map
-  {"import-fhir" import-fhir/perform
+  {"import-vs" import-vs/perform
    "import-loinc" import-loinc/perform
    "import-snomed" import-snomed/perform})
 

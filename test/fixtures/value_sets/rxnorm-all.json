@@ -1,0 +1,30 @@
+{
+  "resourceType": "ValueSet",
+  "id": "valueset-test-rxnorm-all",
+  "meta": {
+    "lastUpdated": "2015-02-02T13:17:44.755+11:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": ""
+  },
+  "identifier": "http://localhost/fhirterm/test-value-sets/valueset-test-rxnorm-all",
+  "name": "Test VS: All RxNorm Codes",
+  "publisher": "HealthSamurai Team",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "http://health-samurai.io"
+    }
+  ],
+  "description": "",
+  "copyright": "",
+  "status": "draft",
+  "compose": {
+    "include": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm"
+      }
+    ]
+  }
+}
