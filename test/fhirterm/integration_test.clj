@@ -124,3 +124,10 @@
 
   (let [result (get-expansion (expand-vs "ccdaagecodes"))]
     (is (= (count result) 6))))
+
+(deftest ^:integration expansion-of-rxnorm-value-sets-test
+  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-all"))]
+    (doseq [c ["38" "44" "61"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 249000))))
