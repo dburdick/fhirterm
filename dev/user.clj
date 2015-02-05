@@ -17,7 +17,7 @@
          :level "debug"}
 
    :fhir-client {:protocol "rest"
-                 :base_url "http://localhost:3000"}})
+                 :base-url "http://localhost:3000"}})
 
 (defn start []
   (system/start config))

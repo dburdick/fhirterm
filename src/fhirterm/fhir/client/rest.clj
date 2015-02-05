@@ -41,7 +41,7 @@
 
     (update-in response [:body] json/parse)))
 
-(defn start [{bu :base_url}]
+(defn start [{bu :base-url}]
   ;; remove trailing slash in base url
   {:base-url (str/replace bu #"/$" "")})
 
