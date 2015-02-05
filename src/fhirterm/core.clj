@@ -6,6 +6,7 @@
             [fhirterm.system :as system]
             [fhirterm.tasks.import-vs :as import-vs]
             [fhirterm.tasks.import-snomed :as import-snomed]
+            [fhirterm.tasks.import-rxnorm :as import-rxnorm]
             [fhirterm.tasks.import-loinc :as import-loinc]))
 
 (defn- usage [options-summary]
@@ -20,6 +21,7 @@
         "  import-vs      Import content of specified directory as FHIR ValueSets"
         "  import-loinc   Import LOINC NS from ZIP distribution"
         "  import-snomed  Import SNOMEDCT NS from ZIP distribution"
+        "  import-rxnorm  Import RxNorm NS from ZIP distribution"
         ""
         "Please refer to the README for more information."]
        (string/join \newline)))
@@ -27,6 +29,7 @@
 (def task-to-namespace-map
   {"import-vs" import-vs/perform
    "import-loinc" import-loinc/perform
+   "import-rxnorm" import-rxnorm/perform
    "import-snomed" import-snomed/perform})
 
 (def cli-options
