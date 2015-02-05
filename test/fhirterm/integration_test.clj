@@ -130,4 +130,10 @@
     (doseq [c ["38" "44" "61"]]
       (is (find-coding result c)))
 
-    (is (= (count result) 249449))))
+    (is (= (count result) 249449)))
+
+  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-explicit-codes"))]
+    (doseq [c ["38" "44" "61"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 4))))

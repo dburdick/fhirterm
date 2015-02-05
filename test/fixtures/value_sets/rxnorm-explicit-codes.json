@@ -1,0 +1,44 @@
+{
+  "resourceType": "ValueSet",
+  "id": "valueset-test-rxnorm-explicit-codes",
+  "meta": {
+    "lastUpdated": "2015-02-02T13:17:44.755+11:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": ""
+  },
+  "identifier": "http://localhost/fhirterm/test-value-sets/valueset-test-rxnorm-explicit-codes",
+  "name": "Test VS: Explicitly Defined RxNorm Codes",
+  "publisher": "HealthSamurai Team",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "http://health-samurai.io"
+    }
+  ],
+  "description": "",
+  "copyright": "",
+  "status": "draft",
+  "compose": {
+    "include": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "concept": [
+          {
+            "code": "38"
+          },
+          {
+            "code": "44"
+          },
+          {
+            "code": "61"
+          },
+          {
+            "code": "73"
+          }
+        ]
+      }
+    ]
+  }
+}
