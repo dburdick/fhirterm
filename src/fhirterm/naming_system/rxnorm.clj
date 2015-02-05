@@ -22,12 +22,22 @@
                              [:= :sab "RXNORM"]
                              [:<> :tty "SY"]])))))
 
+(defn- split-column-and-value [v]
+  (if (not= (.indexOf v ":") -1)
+    (str/split v #":" 2)
+    [nil v]))
+
 (defn- filter-to-query [{:keys [op value property] :as f}]
   (cond
    (and (= op "in") (= property "code"))
    (str "SELECT unnest('{"
         (str/join "," (keys value))
-        "}'::varchar[]) AS concept_id")
+        "}'::varchar[]) AS rxcui")
+
+   (and (= op "=") (= property "STY"))
+   (let [[clmn val] (split-column-and-value value)]
+     (format "SELECT rxcui FROM rxn_sty WHERE %s = %s"
+             (or clmn "tui") (db/quote-str val)))
 
    :else
    (throw (IllegalArgumentException. (str "Don't know how to apply filter "

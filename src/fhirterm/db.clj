@@ -35,6 +35,9 @@
                   (constantly config))
   config)
 
+(defn quote-str [s]
+  (str "'" (str/replace s "'" "''") "'"))
+
 (defn stop []
   (alter-var-root #'*db*
                   (constantly nil)))
