@@ -43,6 +43,8 @@
 
 (defn start [{bu :base-url}]
   ;; remove trailing slash in base url
+  (when (not bu)
+    (throw (IllegalArgumentException. "No base-url provided for REST FHIR Client")))
   {:base-url (str/replace bu #"/$" "")})
 
 (defn stop [s]

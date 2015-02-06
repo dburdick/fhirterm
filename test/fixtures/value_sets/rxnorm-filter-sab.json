@@ -1,0 +1,37 @@
+{
+  "resourceType": "ValueSet",
+  "id": "valueset-test-rxnorm-filter-sab",
+  "meta": {
+    "lastUpdated": "2015-02-02T13:17:44.755+11:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": ""
+  },
+  "identifier": "http://localhost/fhirterm/test-value-sets/valueset-test-rxnorm-filter-sab",
+  "name": "Test VS: RxNorm Codes Filtered By SAB",
+  "publisher": "HealthSamurai Team",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "http://health-samurai.io"
+    }
+  ],
+  "description": "",
+  "copyright": "",
+  "status": "draft",
+  "compose": {
+    "include": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "filter": [
+          {
+            "property": "SAB",
+            "op": "=",
+            "value": "NDFRT"
+          }
+        ]
+      }
+    ]
+  }
+}

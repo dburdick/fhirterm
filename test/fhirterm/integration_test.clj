@@ -33,7 +33,14 @@
     (json/parse (slurp (:body response)))))
 
 (defn get-expansion [r]
-  (get-in r [:expansion :contains]))
+  (let [expansion (get-in r [:expansion :contains])
+        codes (map :code expansion)
+        codes-set (set codes)]
+
+    (is (= (count codes) (count codes-set))
+        "expansion codes are distinct")
+
+    expansion))
 
 (defn find-coding [codings code]
   (first (filter (fn [c] (= (:code c) code)) codings)))
@@ -130,7 +137,7 @@
     (doseq [c ["38" "44" "61"]]
       (is (find-coding result c)))
 
-    (is (= (count result) 249449)))
+    (is (= (count result) 207661)))
 
   (let [result (get-expansion (expand-vs "valueset-test-rxnorm-explicit-codes"))]
     (doseq [c ["38" "44" "61"]]
@@ -142,4 +149,19 @@
     (doseq [c ["2236" "1306059" "992396" "151343"]]
       (is (find-coding result c)))
 
-    (is (= (count result) 986))))
+    (is (= (count result) 957)))
+
+  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-filter-sab"))]
+    (doseq [c ["479172" "1312359" "313771" "283504"]]
+      (is (find-coding result c)))
+
+    (is (= (count result) 16138)))
+
+  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-filter-combinations"))]
+    (doseq [c ["1311583" "204175" "310489" "996923"]]
+      (is (find-coding result c)))
+
+    (doseq [c ["310214" "1012727" "861035" "397"]]
+      (is (not (find-coding result c))))
+
+    (is (= (count result) 16792))))

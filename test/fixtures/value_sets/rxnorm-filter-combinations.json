@@ -1,0 +1,61 @@
+{
+  "resourceType": "ValueSet",
+  "id": "valueset-test-rxnorm-filter-combinations",
+  "meta": {
+    "lastUpdated": "2015-02-02T13:17:44.755+11:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": ""
+  },
+  "identifier": "http://localhost/fhirterm/test-value-sets/valueset-test-rxnorm-filter-combinations",
+  "name": "Test VS: RxNorm Codes Filtered By Set of Filters",
+  "publisher": "HealthSamurai Team",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "http://health-samurai.io"
+    }
+  ],
+  "description": "",
+  "copyright": "",
+  "status": "draft",
+  "compose": {
+    "include": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "filter": [
+          {
+            "property": "STY",
+            "op": "=",
+            "value": "T195"
+          },
+          {
+            "property": "SAB",
+            "op": "=",
+            "value": "NDFRT"
+          }
+        ]
+      }
+    ],
+    "exclude": [
+      {
+        "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+        "concept": [
+          {
+            "code": "310214"
+          },
+          {
+            "code": "1012727"
+          },
+          {
+            "code": "861035"
+          },
+          {
+            "code": "397"
+          }
+        ]
+      }
+    ]
+  }
+}
