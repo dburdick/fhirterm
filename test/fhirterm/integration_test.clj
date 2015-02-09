@@ -159,3 +159,8 @@
       (is (not (find-coding result c))))
 
     (is (= (count result) 16792))))
+
+(deftest ^:integration too-costy-expansions-test
+  (doseq [vs ["valueset-test-rxnorm-all" "valueset-test-snomed-all"]]
+    (is (= "too-costy"
+           (get-in (expand-vs vs) [:issue 0 :type :code])))))
