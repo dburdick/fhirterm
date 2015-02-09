@@ -50,4 +50,4 @@
 
 (defn lookup-code [vs params])
 
-(defn costy? [filters] false)
+(defn costy? [vs filters] false)
