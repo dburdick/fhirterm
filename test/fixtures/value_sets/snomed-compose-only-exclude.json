@@ -1,0 +1,42 @@
+{
+  "resourceType": "ValueSet",
+  "id": "valueset-test-snomed-compose-only-exclude",
+  "meta": {
+    "lastUpdated": "2015-02-02T13:17:44.755+11:00"
+  },
+  "text": {
+    "status": "generated",
+    "div": ""
+  },
+  "identifier": "http://localhost/fhirterm/test-value-sets/valueset-test-snomed-compose-only-exclude",
+  "name": "Test VS: All SNOMED Codes except body sites",
+  "publisher": "HealthSamurai Team",
+  "telecom": [
+    {
+      "system": "url",
+      "value": "http://health-samurai.io"
+    }
+  ],
+  "description": "",
+  "copyright": "",
+  "status": "draft",
+  "compose": {
+    "include": [
+      {
+        "system": "http://snomed.info/sct"
+      }
+    ],
+    "exclude": [
+      {
+        "system": "http://snomed.info/sct",
+        "filter": [
+          {
+            "property": "concept",
+            "op": "is-a",
+            "value": "91723000"
+          }
+        ]
+      }
+    ]
+  }
+}

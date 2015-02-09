@@ -70,6 +70,9 @@
     (is (= (count result) 38375))))
 
 (deftest ^:integration expansion-of-snomed-vs-test
+  ;; TODO: test expansion of 'valueset-test-snomed-compose-only-exclude'
+  ;; when 'filter' option will be available
+
   (let [result (get-expansion (expand-vs "valueset-route-codes"))]
 
     (is (find-coding result 31638007))

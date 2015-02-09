@@ -72,14 +72,21 @@
 
     (let [included-query (filters-to-query include)
           excluded-query (filters-to-query exclude)
-          concept-ids-query (combine-queries :except [included-query excluded-query])]
+          concept-ids-query (combine-queries :except [included-query excluded-query])
 
-      (map row-to-coding
-           (db/q (-> (sql/select [:t.concept_id :code]
-                       [:sd.term :display])
-                     (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
-                     (sql/join [:snomed_descriptions_no_history :sd]
-                               [:= :sd.concept_id :t.concept_id])))))))
+          query (if (and (not included-query) excluded-query)
+                  (-> (sql/select [:concept_id :code] [:term :display])
+                      (sql/from :snomed_descriptions_no_history)
+                      (sql/where [:not
+                                  [:in :concept_id
+                                   (sqlc/raw (str "(" concept-ids-query ")"))]]))
+
+                  (-> (sql/select [:t.concept_id :code] [:sd.term :display])
+                      (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
+                      (sql/join [:snomed_descriptions_no_history :sd]
+                                [:= :sd.concept_id :t.concept_id])))]
+
+      (map row-to-coding (db/q query)))))
 
 (defn costy? [filters]
   (filters-empty? (:include filters) []))
