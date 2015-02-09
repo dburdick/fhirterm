@@ -49,3 +49,5 @@
                    []))
 
 (defn lookup-code [vs params])
+
+(defn costy? [filters] false)

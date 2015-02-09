@@ -141,3 +141,5 @@
                                  [:in :rxcui
                                   (sqlc/raw (str "(" concept-ids-query ")"))]])
                      (sql/group :rxcui)))))))
+
+(defn costy? [filters] false)

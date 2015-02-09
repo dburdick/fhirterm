@@ -229,3 +229,5 @@
   (if (filters-empty? (:include filters) (:exclude filters))
     (map to-coding units-map)
     (map to-coding (apply-filters filters))))
+
+(defn costy? [filters] false)

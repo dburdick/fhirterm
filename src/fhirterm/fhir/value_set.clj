@@ -41,22 +41,24 @@
            (into regular-filters code-filter)))
        includes))
 
-(defn- expand-with-compose-include-and-exclude [expansion vs]
+(defn- get-composing-filters [vs]
   (let [includes-by-syst (group-by :system (get-in vs [:compose :include]))
-        excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))
-        filters-for-external-ns
-        (reduce (fn [acc syst]
-                  (assoc acc syst
-                         {:include
-                          (filters-from-include-or-exclude (get includes-by-syst syst))
-                          :exclude
-                          (filters-from-include-or-exclude (get excludes-by-syst syst))}))
-                {} (keys includes-by-syst))]
+        excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))]
 
+    (reduce (fn [acc syst]
+              (assoc acc syst
+                     {:include
+                      (filters-from-include-or-exclude (get includes-by-syst syst))
+                      :exclude
+                      (filters-from-include-or-exclude (get excludes-by-syst syst))}))
+            {} (keys includes-by-syst))))
+
+(defn- expand-with-compose-include-and-exclude [expansion vs]
+  (let [filters-by-ns (get-composing-filters vs)]
     (reduce (fn [res [ns filters]]
               (let [system (resolve-naming-system ns)]
                 (into res (naming-system/filter-codes system filters))))
-            expansion filters-for-external-ns)))
+            expansion filters-by-ns)))
 
 (defn- expand-with-define [expansion {{:keys [system concept]} :define :as vs}]
   (reduce (fn reduce-fn [result c]
@@ -94,6 +96,29 @@
                   result)))
             expansion imports)))
 
+(declare costy-expansion?)
+(defn- costy-import? [vs params]
+  (let [imports (get-in vs [:compose :import])]
+    (reduce (fn [result identifier]
+              (if (not result)
+                (let [imported-vs (find-by-identifier identifier)]
+                  (if imported-vs
+                    (costy-expansion? imported-vs params)
+                    result))
+
+                result))
+            false imports)))
+
+(defn- costy-compose? [vs params]
+  (let [filters-by-ns (get-composing-filters vs)]
+    (reduce (fn [res [ns filters]]
+              (if (not res)
+                (let [system (resolve-naming-system ns)]
+                  (naming-system/costy? system filters))
+                res))
+            false filters-by-ns)))
+
+;; TODO: rewrite with algo.monads
 (defn- expand* [vs params]
   (-> []
       (expand-with-define vs)
@@ -101,9 +126,17 @@
       (expand-with-compose-include-and-exclude vs)
       (apply-expansion-filters params)))
 
+;; TODO: rewrite with algo.monads
+(defn- costy-expansion? [vs params]
+  (or (costy-import? vs params)
+      (costy-compose? vs params)))
+
 (defn expand [vs params]
-  (let [result (expand* vs params)]
-    (assoc vs :expansion {:identifier (util/uuid)
-                          :timestamp (time/now)
-                          :contains (map (fn [x] (dissoc x :search-vector))
-                                         result)})))
+  (if (costy-expansion? vs params)
+    :too-costy
+
+    (let [result (expand* vs params)]
+      (assoc vs :expansion {:identifier (util/uuid)
+                            :timestamp (time/now)
+                            :contains (map (fn [x] (dissoc x :search-vector))
+                                           result)}))))

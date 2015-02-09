@@ -72,3 +72,5 @@
                           ((fn [q]
                              (if pred (sql/where q pred) q)))))]
     (map row-to-coding codings)))
+
+(defn costy? [filters] false)

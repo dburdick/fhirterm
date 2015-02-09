@@ -80,3 +80,6 @@
                      (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
                      (sql/join [:snomed_descriptions_no_history :sd]
                                [:= :sd.concept_id :t.concept_id])))))))
+
+(defn costy? [filters]
+  (empty? (flatten (:include filters))))

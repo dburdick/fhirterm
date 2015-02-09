@@ -41,3 +41,6 @@
 
 (defn filter-codes [system filters]
   (invoke-ns-method system 'filter-codes filters))
+
+(defn costy? [system filters]
+  (invoke-ns-method system 'costy? filters))
