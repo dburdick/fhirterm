@@ -82,4 +82,4 @@
                                [:= :sd.concept_id :t.concept_id])))))))
 
 (defn costy? [filters]
-  (empty? (flatten (:include filters))))
+  (filters-empty? (:include filters) []))

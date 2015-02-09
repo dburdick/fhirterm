@@ -133,12 +133,6 @@
     (is (= (count result) 6))))
 
 (deftest ^:integration expansion-of-rxnorm-value-sets-test
-  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-all"))]
-    (doseq [c ["38" "44" "61"]]
-      (is (find-coding result c)))
-
-    (is (= (count result) 207661)))
-
   (let [result (get-expansion (expand-vs "valueset-test-rxnorm-explicit-codes"))]
     (doseq [c ["38" "44" "61"]]
       (is (find-coding result c)))

@@ -142,4 +142,5 @@
                                   (sqlc/raw (str "(" concept-ids-query ")"))]])
                      (sql/group :rxcui)))))))
 
-(defn costy? [filters] false)
+(defn costy? [filters]
+  (filters-empty? (:include filters) []))
