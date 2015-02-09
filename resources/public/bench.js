@@ -49,16 +49,23 @@ bench.controller('BenchCtrl', ['$scope', '$http', '$sce', function($scope, $http
 
             g.success(function(data) {
                 var time = new Date() - startedAt;
-                current.times.push(time);
-                current.size = data.expansion.contains.length;
 
-                if (current.times.length == $scope.expansionsPerVs) {
-                    current.status = 'finished';
-                    current.message = $sce.trustAsHtml("OK");
-
+                if (data.resourceType == "OperationOutcome") {
+                    current.status = 'error';
+                    current.message = $sce.trustAsHtml("<strong>" + data.issue[0].type.code + ":</strong> " + data.issue[0].details);
                     $scope.performExpands();
                 } else {
-                    justDoIt();
+                    current.times.push(time);
+                    current.size = data.expansion.contains.length;
+
+                    if (current.times.length == $scope.expansionsPerVs) {
+                        current.status = 'finished';
+                        current.message = $sce.trustAsHtml("OK");
+
+                        $scope.performExpands();
+                    } else {
+                        justDoIt();
+                    }
                 }
             });
 
