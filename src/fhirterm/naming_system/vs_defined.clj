@@ -1,4 +1,5 @@
-(ns fhirterm.naming-system.vs-defined)
+(ns fhirterm.naming-system.vs-defined
+  (:require [fhirterm.util :as util]))
 
 (defn- concept-matches-filter? [{:keys [property op value]} path concept]
   (when (not (contains? #{"is-a" "in"} op) )
@@ -24,9 +25,15 @@
                         true fs)))
           false filters))
 
-(defn- check-concept [{:keys [include exclude]} path concept]
+(defn- concept-matches-text-filter? [c text]
+  (if (not text)
+    true
+    (util/string-contains? (:display c) text true)))
+
+(defn- check-concept [{:keys [include exclude text]} path concept]
   (and (concept-matches-filters? include path concept)
-       (not (concept-matches-filters? exclude path concept))))
+       (not (concept-matches-filters? exclude path concept))
+       (concept-matches-text-filter? concept text)))
 
 (defn- filter-concepts [concepts f path]
   (reduce (fn [acc c]

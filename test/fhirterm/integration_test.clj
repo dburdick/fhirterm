@@ -196,4 +196,10 @@
   (let [result (get-expansion (expand-vs "lipid-ldl-codes" {:filter "Direc"}))]
     (is (find-coding result "18262-6"))
     (is (not (find-coding result "13457-7")))
+    (is (= (count result) 1)))
+
+  ;; imported VS
+  (let [result (get-expansion (expand-vs "valueset-contraindication-mitigation-action"
+                                         {:filter "Lea"}))]
+    (is (find-coding result "18"))
     (is (= (count result) 1))))
