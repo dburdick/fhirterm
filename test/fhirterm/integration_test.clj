@@ -174,7 +174,20 @@
            (get-in (expand-vs vs) [:issue 0 :type :code])))))
 
 (deftest ^:integration expansion-with-text-filtering
-  (let [r (get-expansion (expand-vs "valueset-test-rxnorm-filter-sab"
+  ;; defined ns
+  (let [r (get-expansion (expand-vs "valueset-questionnaire-question-text-type"
                                     {:filter "too"}))]
-    (is (find-coding result "tooltip"))
-    (is (not (find-coding result "help")))))
+    (is (find-coding r "tooltip"))
+    (is (not (find-coding r "help"))))
+
+  ;; UCUM
+  (let [r (get-expansion (expand-vs "valueset-ucum-vitals-common"
+                                    {:filter "mil"}))]
+    (is (find-coding r "mm[Hg]"))
+    (is (not (find-coding r "Cel"))))
+
+  ;; SNOMED
+  (let [r (get-expansion (expand-vs "valueset-daf-problem-severity"
+                                    {:filter "fat"}))]
+    (is (find-coding r 399166001))
+    (is (not (find-coding r 371923003)))))

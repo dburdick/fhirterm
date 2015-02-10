@@ -4,13 +4,14 @@
             [clojure.zip :as zip]
             [clojure.java.io :as io]
             [clojure.set :as set]
+            [fhirterm.util :as util]
             [instaparse.core :as insta]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; The following code is copied from UCUM-lib library
 ;; https://github.com/IDEXX/ucum-lib/
 ;; Copyright (c) 2015 by Dave Kincaid
-;; Distributed under the Eclipse Public License either version 1.0.
+;; Distributed under Eclipse Public License either version 1.0.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defrecord Prefix
@@ -226,8 +227,15 @@
   nil)
 
 (defn filter-codes [filters]
-  (if (filters-empty? (:include filters) (:exclude filters))
-    (map to-coding units-map)
-    (map to-coding (apply-filters filters))))
+  (let [codings (if (filters-empty? (:include filters)
+                                    (:exclude filters))
+                  (map to-coding units-map)
+                  (map to-coding (apply-filters filters)))]
+
+    (if (:text filters)
+      (filter #(util/string-contains? (:display %) (:text filters) true)
+           codings)
+
+      codings)))
 
 (defn costy? [filters] false)
