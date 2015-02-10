@@ -67,10 +67,16 @@
   (let [pred (combine-preds (filters-to-sql-cond (:include filters))
                             (filters-to-sql-cond (:exclude filters)))
 
-        codings (db/q (-> (sql/select :loinc_num :shortname)
-                          (sql/from :loinc_loincs)
-                          ((fn [q]
-                             (if pred (sql/where q pred) q)))))]
-    (map row-to-coding codings)))
+        query (-> (sql/select :loinc_num :shortname)
+                  (sql/from :loinc_loincs)
+                  ((fn [q]
+                     (if pred (sql/where q pred) q)))
+
+                  ((fn [q]
+                     (if (:text filters)
+                       (sql/merge-where q [:ilike :shortname
+                                           (str "%" (:text filters) "%")]) q))))]
+
+    (map row-to-coding (db/q query))))
 
 (defn costy? [filters] false)

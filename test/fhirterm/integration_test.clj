@@ -190,4 +190,10 @@
   (let [r (get-expansion (expand-vs "valueset-daf-problem-severity"
                                     {:filter "fat"}))]
     (is (find-coding r 399166001))
-    (is (not (find-coding r 371923003)))))
+    (is (not (find-coding r 371923003))))
+
+  ;; LOINC
+  (let [result (get-expansion (expand-vs "lipid-ldl-codes" {:filter "Direc"}))]
+    (is (find-coding result "18262-6"))
+    (is (not (find-coding result "13457-7")))
+    (is (= (count result) 1))))
