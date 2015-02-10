@@ -82,19 +82,6 @@
       (filter #(util/string-contains? (:display %) (:filter params) true) result)
       result)))
 
-(defn- apply-expansion-filters [codings params]
-  (let [filter-str (:filter params)]
-    (if (and filter-str (not (str/blank? filter-str)))
-      ;; perform filtering
-      (let [filter-str (str/lower-case filter-str)
-            filter-fn (fn [^clojure.lang.PersistentArrayMap c]
-                        (let [^String sv (:search-vector c)]
-                          (or (nil? sv) (>= (.indexOf sv filter-str) 0))))]
-        (filter filter-fn codings))
-
-      ;; otherwise, just return all codings
-      codings)))
-
 (declare expand*)
 (defn- expand-with-compose-import [expansion vs params]
   (let [imports (get-in vs [:compose :import])]
