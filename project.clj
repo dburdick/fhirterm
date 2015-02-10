@@ -20,6 +20,8 @@
                  [instaparse "1.3.5"] ;; parser generator for UCUM parsing
                  [org.clojure/data.csv "0.1.2"]]
 
+  :java-source-paths ["src/java"]
+
   :profiles {:dev {:source-paths ["dev"]}
              :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
 

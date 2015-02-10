@@ -79,7 +79,7 @@
 
     ;; apply text filter, if present
     (if (:filter params)
-      (filter #(.equalsIgnoreCase % (:filter params)) result)
+      (filter #(util/string-contains? (:display %) (:filter params) true) result)
       result)))
 
 (defn- apply-expansion-filters [codings params]

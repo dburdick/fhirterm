@@ -172,3 +172,9 @@
   (doseq [vs ["valueset-test-rxnorm-all" "valueset-test-snomed-all"]]
     (is (= "too-costy"
            (get-in (expand-vs vs) [:issue 0 :type :code])))))
+
+(deftest ^:integration expansion-with-text-filtering
+  (let [r (get-expansion (expand-vs "valueset-test-rxnorm-filter-sab"
+                                    {:filter "too"}))]
+    (is (find-coding result "tooltip"))
+    (is (not (find-coding result "help")))))
