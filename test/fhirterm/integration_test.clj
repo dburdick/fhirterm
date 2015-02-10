@@ -24,8 +24,9 @@
   (let [base (format "http://localhost:%d" (get-in *config* [:http :port]))]
     (str/join "/" (into [base] p))))
 
-(defn expand-vs [id]
-  (let [response @(http/get (make-url "ValueSet" id "$expand"))]
+(defn expand-vs [id & [params]]
+  (let [response @(http/get (make-url "ValueSet" id "$expand")
+                            {:query-params (or params {})})]
 
     (when (nil? (:body response))
       (println "!!!" (pr-str response)))
@@ -70,15 +71,19 @@
     (is (= (count result) 38375))))
 
 (deftest ^:integration expansion-of-snomed-vs-test
-  ;; TODO: test expansion of 'valueset-test-snomed-compose-only-exclude'
-  ;; when 'filter' option will be available
-
   (let [result (get-expansion (expand-vs "valueset-route-codes"))]
-
     (is (find-coding result 31638007))
     (is (find-coding result 445755006))
 
-    (is (= (count result) 169))))
+    (is (= (count result) 169)))
+
+  (let [result (get-expansion (expand-vs "valueset-test-snomed-compose-only-exclude"
+                                         {:filter "Anatomical"}))]
+    (is (not (find-coding result 91723000))))
+
+  (let [result (get-expansion (expand-vs "valueset-test-snomed-compose-only-exclude"
+                                         {:filter "artery and vein"}))]
+    (is (not (find-coding result 110748003)))))
 
 (deftest ^:integration expansion-of-explicitely-defined-vs-test
   (let [result (get-expansion (expand-vs "valueset-practitioner-specialty"))]

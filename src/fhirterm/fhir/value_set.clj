@@ -79,7 +79,8 @@
 
     ;; apply text filter, if present
     (if (:filter params)
-      (filter #(.equalsIgnoreCase % (:filter params)) result))))
+      (filter #(.equalsIgnoreCase % (:filter params)) result)
+      result)))
 
 (defn- apply-expansion-filters [codings params]
   (let [filter-str (:filter params)]
@@ -119,7 +120,6 @@
 
 (defn- costy-compose? [vs params]
   (let [filters-by-ns (get-composing-filters vs params)]
-    (println "!!!!" (pr-str filters-by-ns))
     (reduce (fn [res [ns filters]]
               (if (not res)
                 (let [system (resolve-naming-system ns)]
