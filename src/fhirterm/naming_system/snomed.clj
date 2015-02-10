@@ -20,7 +20,7 @@
        :display (:display found-concept)
        :designation [{:value (:display found-concept)}]})))
 
-(defn- filter-to-query [{:keys [op value property] :as f}]
+(defn- filter-to-subquery [{:keys [op value property] :as f}]
   (cond
    (and (= op "is-a") (= property "concept"))
    (-> (sql/select [:%unnest.descendants :concept_id])
@@ -38,19 +38,19 @@
    (throw (IllegalArgumentException. (str "Don't know how to apply filter "
                                           (pr-str f))))))
 
-(defn- combine-queries [op qs]
+(defn- combine-subqueries [op qs]
   (let [qs (remove (fn [x] (or (nil? x) (str/blank? x))) qs)]
     (if (> 2 (count qs))
       (first qs)
       (str/join (str " " (str/upper-case (name op))  " ")
                 (map (fn [q] (str "(" q ")")) qs)))))
 
-(defn- filters-to-query [fs]
-  (combine-queries :intersect
-                   (map (fn [f]
-                          (combine-queries :union
-                                           (map filter-to-query f)))
-                        fs)))
+(defn- filters-to-subquery [fs]
+  (combine-subqueries :intersect
+                      (map (fn [f]
+                             (combine-subqueries :union
+                                                 (map filter-to-subquery f)))
+                           fs)))
 
 (defn- row-to-coding [c]
   (merge c {:system snomed-uri
@@ -60,33 +60,34 @@
 (defn filters-empty? [i e]
   (empty? (flatten [i e])))
 
-(defn filter-codes [{:keys [include exclude :as filters]}]
-  (if (filters-empty? include exclude)
-    (map row-to-coding
-         (db/q (-> (sql/select [:%distinct.sc.id :code] [:sd.term :display])
-                   (sql/from [:snomed_concepts :sc])
-                   (sql/join [:snomed_descriptions_no_history :sd]
-                             [:= :sd.concept_id :sc.id])
+(defn- filters-to-query [{:keys [include exclude text] :as filters}]
+  (let [q (if (filters-empty? include exclude)
+            (-> (sql/select [:concept_id :code] [:sd.term :display])
+                (sql/from :snomed_descriptions_no_history))
 
-                   (sql/where [:= :sc.active true]))))
+            (let [included-query (filters-to-subquery include)
+                  excluded-query (filters-to-subquery exclude)
+                  concept-ids-query (combine-subqueries :except [included-query excluded-query])]
+              (if (and (not included-query) excluded-query)
+                (-> (sql/select [:concept_id :code] [:term :display])
+                    (sql/from :snomed_descriptions_no_history)
+                    (sql/where [:not
+                                [:in :concept_id
+                                 (sqlc/raw (str "(" concept-ids-query ")"))]]))
 
-    (let [included-query (filters-to-query include)
-          excluded-query (filters-to-query exclude)
-          concept-ids-query (combine-queries :except [included-query excluded-query])
+                (-> (sql/select [:t.concept_id :code] [:sd.term :display])
+                    (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
+                    (sql/join [:snomed_descriptions_no_history :sd]
+                              [:= :sd.concept_id :t.concept_id])))))]
 
-          query (if (and (not included-query) excluded-query)
-                  (-> (sql/select [:concept_id :code] [:term :display])
-                      (sql/from :snomed_descriptions_no_history)
-                      (sql/where [:not
-                                  [:in :concept_id
-                                   (sqlc/raw (str "(" concept-ids-query ")"))]]))
+    (if text
+      (sql/merge-where q [:ilike :term (str "%" text "%")])
+      q)))
 
-                  (-> (sql/select [:t.concept_id :code] [:sd.term :display])
-                      (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
-                      (sql/join [:snomed_descriptions_no_history :sd]
-                                [:= :sd.concept_id :t.concept_id])))]
-
-      (map row-to-coding (db/q query)))))
+(defn filter-codes [filters]
+  (let [query (filters-to-query filters)]
+    (map row-to-coding (db/q query))))
 
 (defn costy? [filters]
-  (filters-empty? (:include filters) []))
+  (and (not (:text filters))
+       (filters-empty? (:include filters) [])))

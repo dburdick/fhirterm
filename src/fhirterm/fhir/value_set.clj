@@ -41,37 +41,45 @@
            (into regular-filters code-filter)))
        includes))
 
-(defn- get-composing-filters [vs]
+(defn- get-composing-filters [vs params]
   (let [includes-by-syst (group-by :system (get-in vs [:compose :include]))
-        excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))]
+        excludes-by-syst (group-by :system (get-in vs [:compose :exclude]))
+        grouped-filters (reduce (fn [acc syst]
+                                  (assoc acc syst
+                                         {:include
+                                          (filters-from-include-or-exclude (get includes-by-syst syst))
+                                          :exclude
+                                          (filters-from-include-or-exclude (get excludes-by-syst syst))}))
+                                {} (keys includes-by-syst))]
 
-    (reduce (fn [acc syst]
-              (assoc acc syst
-                     {:include
-                      (filters-from-include-or-exclude (get includes-by-syst syst))
-                      :exclude
-                      (filters-from-include-or-exclude (get excludes-by-syst syst))}))
-            {} (keys includes-by-syst))))
+    ;; add text filter, if any
+    (reduce (fn [acc [ns fs]]
+              (assoc-in acc [ns :text] (:filter params)))
+            grouped-filters grouped-filters)))
 
-(defn- expand-with-compose-include-and-exclude [expansion vs]
-  (let [filters-by-ns (get-composing-filters vs)]
+(defn- expand-with-compose-include-and-exclude [expansion vs params]
+  (let [filters-by-ns (get-composing-filters vs params)]
     (reduce (fn [res [ns filters]]
               (let [system (resolve-naming-system ns)]
                 (into res (naming-system/filter-codes system filters))))
             expansion filters-by-ns)))
 
-(defn- expand-with-define [expansion {{:keys [system concept]} :define :as vs}]
-  (reduce (fn reduce-fn [result c]
-            (let [result (conj result
-                               {:code    (:code c)
-                                :display (:display c)
-                                :system  system})
-                  inner-concept (:concept c)]
-              (if inner-concept
-                (into result (reduce reduce-fn [] inner-concept))
-                result)))
-          expansion
-          concept))
+(defn- expand-with-define [expansion {{:keys [system concept]} :define :as vs} params]
+  (let [result (reduce (fn reduce-fn [result c]
+                         (let [result (conj result
+                                            {:code    (:code c)
+                                             :display (:display c)
+                                             :system  system})
+                               inner-concept (:concept c)]
+                           (if inner-concept
+                             (into result (reduce reduce-fn [] inner-concept))
+                             result)))
+                       expansion
+                       concept)]
+
+    ;; apply text filter, if present
+    (if (:filter params)
+      (filter #(.equalsIgnoreCase % (:filter params)) result))))
 
 (defn- apply-expansion-filters [codings params]
   (let [filter-str (:filter params)]
@@ -87,12 +95,12 @@
       codings)))
 
 (declare expand*)
-(defn- expand-with-compose-import [expansion vs]
+(defn- expand-with-compose-import [expansion vs params]
   (let [imports (get-in vs [:compose :import])]
     (reduce (fn [result identifier]
               (let [imported-vs (find-by-identifier identifier)]
                 (if imported-vs
-                  (into result (expand* imported-vs {}))
+                  (into result (expand* imported-vs params))
                   result)))
             expansion imports)))
 
@@ -110,7 +118,8 @@
             false imports)))
 
 (defn- costy-compose? [vs params]
-  (let [filters-by-ns (get-composing-filters vs)]
+  (let [filters-by-ns (get-composing-filters vs params)]
+    (println "!!!!" (pr-str filters-by-ns))
     (reduce (fn [res [ns filters]]
               (if (not res)
                 (let [system (resolve-naming-system ns)]
@@ -121,10 +130,9 @@
 ;; TODO: rewrite with algo.monads
 (defn- expand* [vs params]
   (-> []
-      (expand-with-define vs)
-      (expand-with-compose-import vs)
-      (expand-with-compose-include-and-exclude vs)
-      (apply-expansion-filters params)))
+      (expand-with-define vs params)
+      (expand-with-compose-import vs params)
+      (expand-with-compose-include-and-exclude vs params)))
 
 ;; TODO: rewrite with algo.monads
 (defn- costy-expansion? [vs params]

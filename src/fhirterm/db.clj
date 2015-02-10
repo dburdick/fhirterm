@@ -7,7 +7,8 @@
             [clj-time.coerce :as tc]
             [fhirterm.json :as json]
             [taoensso.timbre :as timbre]
-            [honeysql.core :as honeysql])
+            [honeysql.core :as honeysql]
+            [honeysql.format :as honeysql-format])
   (:import (org.joda.time DateTime)
            (java.sql Timestamp)
            (java.util Date)
@@ -17,6 +18,13 @@
 (timbre/refer-timbre)
 
 (def ^:dynamic *db* nil)
+
+;; ilike support for  honeysql
+(defmethod honeysql-format/fn-handler "ilike" [_ s p]
+  (str (honeysql-format/to-sql s) " ILIKE " (honeysql-format/to-sql p)))
+
+(defmethod honeysql-format/fn-handler "like" [_ s p]
+  (str (honeysql-format/to-sql s) " LIKE " (honeysql-format/to-sql p)))
 
 (defmacro report-actual-sql-error [& body]
   `(try
