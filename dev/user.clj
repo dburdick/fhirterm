@@ -24,7 +24,7 @@
 
 (defn stop []
   (require 'fhirterm.system)
-  ((ns-resolve 'fhirterm.system 'start)))
+  ((ns-resolve 'fhirterm.system 'stop)))
 
 (defn reset []
   (stop)

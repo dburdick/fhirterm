@@ -44,15 +44,6 @@
 (defn filters-empty? [i e]
   (empty? (flatten [i e])))
 
-(defn- all-codes []
-  (map row-to-coding
-       (db/q (-> (sql/select [:rxcui :code] [:%max.str :display])
-                 (sql/from :rxn_conso)
-                 (sql/where [:and
-                             [:= :sab "RXNORM"]
-                             [:<> :tty "SY"]])
-                 (sql/group :rxcui)))))
-
 (defn- split-column-and-value [v]
   (if (not= (.indexOf v ":") -1)
     (str/split v #":" 2)
@@ -61,7 +52,7 @@
 (def rxn-relationships
   #{"SY" "SIB" "RN" "PAR" "CHD" "RB" "RO"})
 
-(defn- filter-to-query [{:keys [op value property] :as f}]
+(defn- filter-to-subquery [{:keys [op value property] :as f}]
   (cond
    (and (= op "in") (= property "code"))
    (str "SELECT unnest('{"
@@ -117,30 +108,48 @@
       (str/join (str " " (str/upper-case (name op))  " ")
                 (map (fn [q] (str "(" q ")")) qs)))))
 
-(defn- filters-to-query [fs]
+(defn- filters-to-subquery [fs]
   (combine-queries :intersect
                    (map (fn [f]
                           (combine-queries :union
-                                           (map filter-to-query f)))
+                                           (map filter-to-subquery f)))
                         fs)))
 
-(defn filter-codes [{:keys [include exclude :as filters]}]
-  (if (filters-empty? include exclude)
-    (all-codes)
+(defn filters-to-query [{:keys [include exclude text] :as filters}]
+  (let [q (if (filters-empty? include exclude)
+            (-> (sql/select [:rxcui :code] [:%max.str :display])
+                (sql/from :rxn_conso)
+                (sql/where [:and
+                            [:= :sab "RXNORM"]
+                            [:<> :tty "SY"]])
+                (sql/group :rxcui))
 
-    (let [included-query (filters-to-query include)
-          excluded-query (filters-to-query exclude)
-          concept-ids-query (combine-queries :except [included-query excluded-query])]
+            (let [included-subquery (filters-to-subquery include)
+                  excluded-subquery (filters-to-subquery exclude)
 
-      (map row-to-coding
-           (db/q (-> (sql/select [:rxcui :code] [:%max.str :display])
-                     (sql/from :rxn_conso)
-                     (sql/where [:and
-                                 [:= :sab "RXNORM"]
-                                 [:<> :tty "SY"]
-                                 [:in :rxcui
-                                  (sqlc/raw (str "(" concept-ids-query ")"))]])
-                     (sql/group :rxcui)))))))
+                  concept-ids-subquery
+                  (sqlc/raw
+                   (str "("
+                        (combine-queries :except [included-subquery
+                                                  excluded-subquery])
+                        ")"))]
+
+              (-> (sql/select [:rxcui :code] [:%max.str :display])
+                  (sql/from :rxn_conso)
+                  (sql/where [:and
+                              [:= :sab "RXNORM"] [:<> :tty "SY"]
+                              (if (and (not included-subquery) excluded-subquery)
+                                [:not [:in :rxcui concept-ids-subquery]]
+                                [:in :rxcui concept-ids-subquery])])
+                  (sql/group :rxcui))))]
+    (if text
+      (sql/merge-where q [:ilike :str (str "%" text "%")])
+      q)))
+
+(defn filter-codes [filters]
+  (let [q (filters-to-query filters)]
+    (map row-to-coding (db/q q))))
 
 (defn costy? [filters]
-  (filters-empty? (:include filters) []))
+  (and (not (:text filters))
+       (filters-empty? (:include filters) [])))

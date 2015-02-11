@@ -13,6 +13,7 @@
   (alter-var-root #'*config*
                   (constantly (system/read-config "test/config.json")))
 
+  (system/stop)
   (let [system (system/start *config*)]
     (f)
     (println "Stopping server")
@@ -158,6 +159,22 @@
       (is (find-coding result c)))
 
     (is (= (count result) 16138)))
+
+  (let [excluded-codes {"310214" "estropipate"
+                        "1012727" "CARBINOXAMINE"
+                        "861035" "PRAMLINTIDE"
+                        "397" "agar"}]
+    (doseq [[code filter] excluded-codes]
+      (is (not (find-coding
+                (get-expansion
+                 (expand-vs "valueset-test-rxnorm-filter-except-only"
+                            {:filter filter}))
+                code)))))
+
+  (let [result (get-expansion (expand-vs "valueset-test-rxnorm-filter-except-only"
+                                         {:filter "fa"}))]
+    (doseq [c ["1047917" "197691" "313585" "336815"]]
+      (is (find-coding result c))))
 
   (let [result (get-expansion (expand-vs "valueset-test-rxnorm-filter-combinations"))]
     (doseq [c ["1311583" "204175" "310489" "996923"]]
