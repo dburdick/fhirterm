@@ -2,7 +2,6 @@
   (:require
    [clojure.pprint :refer [pprint]]
    [clojure.string :as str]
-   [fhirterm.system :as system]
    [clojure.tools.namespace.repl :refer (refresh)]))
 
 (def config
@@ -20,10 +19,12 @@
                  :base-url "http://localhost:3000"}})
 
 (defn start []
-  (system/start config))
+  (require 'fhirterm.system)
+  ((ns-resolve 'fhirterm.system 'start) config))
 
 (defn stop []
-  (system/stop))
+  (require 'fhirterm.system)
+  ((ns-resolve 'fhirterm.system 'start)))
 
 (defn reset []
   (stop)
