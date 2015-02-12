@@ -72,11 +72,12 @@
     (is (= (count result) 38375))))
 
 (deftest ^:integration expansion-of-snomed-vs-test
-  (let [result (get-expansion (expand-vs "valueset-route-codes"))]
-    (is (find-coding result 31638007))
+  (let [result (get-expansion (expand-vs "valueset-route-codes"
+                                         {:filter "s"}))]
+    (is (find-coding result 418877009))
     (is (find-coding result 445755006))
 
-    (is (= (count result) 169)))
+    (is (= (count result) 77)))
 
   (let [result (get-expansion (expand-vs "valueset-test-snomed-compose-only-exclude"
                                          {:filter "Anatomical"}))]
@@ -95,13 +96,14 @@
     (is (= (count result) 5))))
 
 (deftest ^:integration expansion-of-snomed-vs-composed-from-two-lookups-test
-  (let [result (get-expansion (expand-vs "valueset-daf-problem"))]
+  (let [result (get-expansion (expand-vs "valueset-daf-problem"
+                                         {:filter "s"}))]
     (is (find-coding result 162005007))
     (is (find-coding result 308698004))
     (is (find-coding result 163032006))
     (is (find-coding result 164006007))
 
-    (is (= (count result) 4082))))
+    (is (= (count result) 3580))))
 
 (deftest ^:integration expansion-of-vs-with-import-test
   (let [result (get-expansion (expand-vs "valueset-questionnaire-question-text-type"))]
