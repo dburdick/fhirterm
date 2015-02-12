@@ -16,7 +16,6 @@
     (when found-concept
       {:name "SNOMED"
        :version "to.do"
-       :abstract "TODO"
        :display (:display found-concept)
        :designation [{:value (:display found-concept)}]})))
 
@@ -54,7 +53,6 @@
 
 (defn- row-to-coding [c]
   (merge c {:system snomed-uri
-            :abstract false
             :version "to.do"}))
 
 (defn filters-empty? [i e]
@@ -62,7 +60,7 @@
 
 (defn- filters-to-query [{:keys [include exclude text] :as filters}]
   (let [q (if (filters-empty? include exclude)
-            (-> (sql/select [:concept_id :code] [:sd.term :display])
+            (-> (sql/select [:concept_id :code] [:term :display])
                 (sql/from :snomed_descriptions_no_history))
 
             (let [included-query (filters-to-subquery include)

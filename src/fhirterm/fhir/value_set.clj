@@ -133,5 +133,4 @@
     (let [result (expand* vs params)]
       (assoc vs :expansion {:identifier (util/uuid)
                             :timestamp (time/now)
-                            :contains (map (fn [x] (dissoc x :search-vector))
-                                           result)}))))
+                            :contains (map #(update-in % [:code] str) result)}))))

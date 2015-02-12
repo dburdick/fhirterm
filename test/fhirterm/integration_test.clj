@@ -45,7 +45,7 @@
     expansion))
 
 (defn find-coding [codings code]
-  (first (filter (fn [c] (= (:code c) code)) codings)))
+  (first (filter (fn [c] (= (:code c) (str code))) codings)))
 
 (deftest ^:integration expansion-of-vs-with-enumerated-loinc-codes-test
   (let [result (get-expansion (expand-vs "lipid-ldl-codes"))]
