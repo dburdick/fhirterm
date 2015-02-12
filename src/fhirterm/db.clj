@@ -6,6 +6,7 @@
             [clojure.string :as str]
             [clj-time.coerce :as tc]
             [fhirterm.json :as json]
+            [fhirterm.util :as util]
             [taoensso.timbre :as timbre]
             [honeysql.core :as honeysql]
             [honeysql.format :as honeysql-format])
@@ -77,13 +78,19 @@
 
 (defn q [& args]
   (let [[db sql-vector] (db-and-query-from-args args)]
-    (debug "SQL:" sql-vector)
-    (map from-jdbc (report-actual-sql-error (jdbc/query db sql-vector)))))
+    (let [[time result] (util/measure-time
+                         (report-actual-sql-error
+                          (jdbc/query db sql-vector)))]
+      (debug "SQL:" sql-vector (str "[" time "ms]"))
+      (map from-jdbc result))))
 
 (defn e! [& args]
   (let [[db sql-vector] (db-and-query-from-args args)]
-    (debug "SQL:" sql-vector)
-    (report-actual-sql-error (jdbc/execute! db sql-vector))))
+    (let [[time result] (util/measure-time
+                         (report-actual-sql-error
+                          (jdbc/execute! db sql-vector)))]
+      (debug "SQL:" sql-vector (str "[" time "ms]"))
+      result)))
 
 (defn i! [& args]
   (let [[db [tbl & args]] (extract-db-from-args args)]

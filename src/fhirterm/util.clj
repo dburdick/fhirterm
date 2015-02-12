@@ -8,3 +8,9 @@
   (if ignore-case
     (StringUtil/containsIgnoreCase s what)
     (.contains s what)))
+
+(defmacro measure-time [& body]
+  `(let [start-time# (System/currentTimeMillis)
+         result# (do ~@body)
+         end-time# (System/currentTimeMillis)]
+     [(- end-time# start-time#) result#]))

@@ -6,6 +6,7 @@
             [ring.middleware.stacktrace :as ring-stacktrace]
             [ring.middleware.resource :as ring-resource]
             [fhirterm.json :as json]
+            [fhirterm.util :as util]
             [fhirterm.naming-system.core :as ns-core]
             [fhirterm.fhir.core :as fhir]
             [fhirterm.fhir.value-set :as vs]
@@ -61,17 +62,14 @@
 
 (defn wrap-with-benchmark [handler]
   (fn [request]
-    (let [start-ms (System/currentTimeMillis)
-          time-delta (fn [s] (- (System/currentTimeMillis) s))]
+    (info (str/upper-case (name (:request-method request)))
+          (str (:uri request) "?" (:query-string request))
+          "\nHeaders:" (pr-str (:headers request))
+          "\nParams:" (pr-str (:params request)))
 
-      (info (str/upper-case (name (:request-method request)))
-            (str (:uri request) "?" (:query-string request))
-            "\nHeaders:" (pr-str (:headers request))
-            "\nParams:" (pr-str (:params request)))
-
-      (let [result (handler request)]
-        (info "Finished in" (time-delta start-ms) "ms\n\n")
-        result))))
+    (let [[time result] (util/measure-time (handler request))]
+      (info "Finished in" time "ms\n\n")
+      result)))
 
 (defn wrap-with-operation-outcome-exception-handler [handler]
   (fn [request]
