@@ -26,13 +26,13 @@
     (str/join "/" (into [base] p))))
 
 (defn expand-vs [id & [params]]
-  (let [response @(http/get (make-url "ValueSet" id "$expand")
-                            {:query-params (or params {})})]
+  (let [{body :body :as response} @(http/get (make-url "ValueSet" id "$expand")
+                                             {:query-params (or params {})})]
 
-    (when (nil? (:body response))
+    (when (nil? body)
       (println "!!!" (pr-str response)))
 
-    (json/parse (slurp (:body response)))))
+    (json/parse (if (string? body) body (slurp body)))))
 
 (defn get-expansion [r]
   (let [expansion (get-in r [:expansion :contains])
@@ -96,7 +96,6 @@
 
 (deftest ^:integration expansion-of-snomed-vs-composed-from-two-lookups-test
   (let [result (get-expansion (expand-vs "valueset-daf-problem"))]
-
     (is (find-coding result 162005007))
     (is (find-coding result 308698004))
     (is (find-coding result 163032006))

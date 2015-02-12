@@ -5,6 +5,7 @@
             [honeysql.core :as sqlc]))
 
 (def snomed-uri "http://snomed.info/sct")
+(def costy-threshold 10000)
 
 (defn lookup-code [params]
   (let [found-concept (db/q-one (-> (sql/select [:sd.term :display]
@@ -55,37 +56,45 @@
   (merge c {:system snomed-uri
             :version "to.do"}))
 
-(defn filters-empty? [i e]
-  (empty? (flatten [i e])))
+(defn- filters-empty? [include exclude]
+  (empty? (flatten [include exclude])))
+
+(defn- filters-to-predicate [i e]
+  (when (not (filters-empty? i e))
+    (let [included-query (filters-to-subquery i)
+          excluded-query (filters-to-subquery e)
+
+          concept-ids-subquery
+          (combine-subqueries :except [included-query excluded-query])]
+
+      (if (and (not included-query) excluded-query)
+        [:not [:in :concept_id (sqlc/raw (str "(" excluded-query ")"))]]
+        [:in :concept_id (sqlc/raw (str "(" concept-ids-subquery ")"))]))))
 
 (defn- filters-to-query [{:keys [include exclude text] :as filters}]
-  (let [q (if (filters-empty? include exclude)
-            (-> (sql/select [:concept_id :code] [:term :display])
-                (sql/from :snomed_descriptions_no_history))
-
-            (let [included-query (filters-to-subquery include)
-                  excluded-query (filters-to-subquery exclude)
-                  concept-ids-query (combine-subqueries :except [included-query excluded-query])]
-              (if (and (not included-query) excluded-query)
-                (-> (sql/select [:concept_id :code] [:term :display])
-                    (sql/from :snomed_descriptions_no_history)
-                    (sql/where [:not
-                                [:in :concept_id
-                                 (sqlc/raw (str "(" concept-ids-query ")"))]]))
-
-                (-> (sql/select [:t.concept_id :code] [:sd.term :display])
-                    (sql/from [(sqlc/raw (str "(" concept-ids-query ")")) :t])
-                    (sql/join [:snomed_descriptions_no_history :sd]
-                              [:= :sd.concept_id :t.concept_id])))))]
+  (let [q (-> (sql/select [:concept_id :code] [:term :display])
+              (sql/from :snomed_descriptions_no_history)
+              (sql/where (filters-to-predicate include exclude)))]
 
     (if text
       (sql/merge-where q [:ilike :term (str "%" text "%")])
       q)))
 
 (defn filter-codes [filters]
-  (let [query (filters-to-query filters)]
-    (map row-to-coding (db/q query))))
+  (map row-to-coding
+       (db/q (filters-to-query filters))))
 
-(defn costy? [filters]
+(defn- count-codes [{:keys [include exclude] :as filters}]
+  (db/q-val (let [predicate (filters-to-predicate include exclude)]
+              (if (or (nil? predicate) (= (first predicate) :not))
+                (-> (sql/select :%count.*)
+                    (sql/from :snomed_descriptions_no_history)
+                    (sql/where predicate))
+
+                (-> (sql/select :%count.*)
+                    (sql/from [(nth predicate 2) :_]))))))
+
+(defn costy? [{:keys [include exclude] :as filters}]
   (and (not (:text filters))
-       (filters-empty? (:include filters) [])))
+       (or (filters-empty? include exclude)
+           (< (count-codes filters) costy-threshold))))
