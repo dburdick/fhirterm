@@ -16,6 +16,12 @@
 
 (timbre/refer-timbre)
 
+(defn- normalize-expand-params [params]
+  (let [filtered (select-keys params [:filter])]
+    (if (str/blank? (:filter filtered))
+      (dissoc filtered :filter)
+      filtered)))
+
 (defn respond-with [status obj]
   (let [json (if (string? obj) (json/parse obj) obj)
         json-string (json/generate json {:pretty true})]
@@ -44,7 +50,7 @@
     (GET "/:id/$expand" {{id :id :as params} :params :as request}
       (let [vs (vs/find-by-id id)]
         (if vs
-          (let [expansion (vs/expand vs params)]
+          (let [expansion (vs/expand vs (normalize-expand-params params))]
             (if (= expansion :too-costy)
               (respond-with-outcome :fatal :too-costy
                                     "ValueSet expansion will consume too much resources"
