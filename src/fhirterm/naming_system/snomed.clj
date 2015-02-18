@@ -5,7 +5,7 @@
             [honeysql.core :as sqlc]))
 
 (def snomed-uri "http://snomed.info/sct")
-(def costy-threshold 10000)
+(def costy-threshold 500)
 
 (defn lookup-code [params]
   (let [found-concept (db/q-one (-> (sql/select [:sd.term :display]
@@ -97,4 +97,4 @@
 (defn costy? [{:keys [include exclude] :as filters}]
   (and (not (:text filters))
        (or (filters-empty? include exclude)
-           (< (count-codes filters) costy-threshold))))
+           (> (count-codes filters) costy-threshold))))
