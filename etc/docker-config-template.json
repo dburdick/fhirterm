@@ -1,5 +1,5 @@
 {
-  "env": "production",
+  "env": "development",
   "http": {
     "port": 7654
   },
@@ -16,6 +16,6 @@
   },
   "fhir-client": {
     "protocol": "rest",
-    "base-url": "http://localhost:3000/"
+    "base-url": "FHIR_SERVER_BASE_URL"
   }
 }
