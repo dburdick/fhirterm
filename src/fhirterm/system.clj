@@ -37,6 +37,7 @@
                                               env))))
 
   (setup-logging log)
+  (info "Starting FHIRterm with config:\n" (pr-str config))
 
   (let [db (db/start config)]
     {:server (if headless? nil (server/start config db))
