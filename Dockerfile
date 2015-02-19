@@ -23,6 +23,6 @@ ENV DB_NAME fhirterm
 EXPOSE 7654
 
 CMD cd /home/fhir/fhirterm && \
-    sed "s/DB_USER/$DB_USER/g;s/DB_PASSWORD/$DB_PASSWORD/g;s/DB_HOST/$DB_5432_TCP_ADDR/g;s/DB_PORT/$DB_5432_TCP_PORT/g;s/DB_NAME/$DB_NAME/g;s/FHIR_SERVER_BASE_URL/$FHIR_SERVER_BASE_URL/g" \
+    sed "s/DB_USER/$DB_USER/g;s/DB_PASSWORD/$DB_PASSWORD/g;s/DB_HOST/$DB_5432_TCP_ADDR/g;s/DB_PORT/$DB_5432_TCP_PORT/g;s/DB_NAME/$DB_NAME/g;s/FHIR_SERVER_BASE_URL/http:\\/\\/$FHIR_SERVER_HOST:$FHIR_SERVER_PORT/g" \
     etc/docker-config-template.json > config.json \
     && lein run -c config.json run
