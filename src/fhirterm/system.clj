@@ -37,7 +37,7 @@
                                               env))))
 
   (setup-logging log)
-  (info "Starting FHIRterm with config:\n" (pr-str config))
+  (info "Starting FHIRterm with config" (pr-str config))
 
   (let [db (db/start config)]
     {:server (if headless? nil (server/start config db))
@@ -53,7 +53,8 @@
 
 (defn read-config [path]
   (try
-    (json/parse (slurp path))
+    (-> (json/parse (slurp path))
+        (update-in [:env] keyword))
 
     (catch java.io.FileNotFoundException e
       (println (format "Could not read config file: %s"
